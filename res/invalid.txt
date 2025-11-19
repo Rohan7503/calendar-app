@@ -1,0 +1,33 @@
+create calendar --name C1 --timezone America/New_York
+use calendar --name C1
+crete event Meeting from 2025-10-26T10:00 to 2025-10-26T11:00
+create event Meeting from 2025-10-2T10:00 to 2025-10-02T11:00
+create event Meeting from 2025-10-02T10:00 to 2025-10-02T11:00
+create event "Daily Sprint" from 2025-10-28T10:00 to 2025-10-28T11:00 repeats WRF for 20 times
+create event "Daily Sprint" from 2025-10-28T10:00 to 2025-10-28T11:00 repeats WRF until 2026-03-28
+create event "Daily Sprint" on 2025-11-04
+create event "Daily Sprint" on 2025-12-7
+create event "Daily Sprint" on 2025-11-04 repeats RF for 10 times
+create event "Daily Sprint" on 2025-11-4 repeats GRF for 10 times
+create event "Daily Sprint" on 2025-11-04 repeats RF until 2026-01-28
+create event "Daily Sprint" on 2025-11-04 repeats RF until 2026-01-3
+
+edit event start "Daily Sprint" from 2025-10-28T10:00 to 2025-10-28T11:00 with 2025-10-28T09:00
+edit event start "Daily Sprint" from 2025-10-2T10:00 to 2025-10-28T11:00 with 2025-10-28T09:00
+edit events location "Daily Sprint" from 2025-10-28T10:00 with "Bengal"
+edit events subject "Daily Sprint" from 2025-10-28T10:00 with "Daily Master Sprint"
+edit series end "Daily Sprint" from 2025-10-28T10:00 with 2025-10-28T15:00
+edit series end "Daily Sprint" from 2025-10-8T10:00 with 2025-10-28T15:00
+edit series start "Daily Sprint" from 2025-10-28T10:00 with 2025-10-28T9:00
+
+print events on 2025-11-04
+print events on 2025-10-4
+print events from 2025-10-28T10:00 to 2025-10-28T11:00
+print events from 2025-10-8T10:00 to 2025-10-28T11:00
+
+export cal xyz.csv
+export cal xyz.txt
+
+show status on 2025-10-28T10:00
+show status on 2025-10-2T10:00
+exit

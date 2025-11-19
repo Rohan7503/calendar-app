@@ -1,0 +1,14 @@
+create calendar --name Work --timezone America/New_York
+
+edit calendar --name Work --property timezone America/Chicago
+
+use calendar --name Work
+
+copy event "Team Meeting" on 2024-03-15T10:00 --target Work to 2024-03-20T14:00
+copy event Meeting on 2024-03-15T10:00 --target Work to 2024-03-20T14:00
+
+copy events on 2024-03-15 --target Work to 2024-03-22
+copy events on 2024-04-10 --target Personal to 2025-04-17
+
+copy events between 2024-03-01 and 2024-03-07 --target Work to 2024-03-15
+copy events between 2024-04-01 and 2024-04-15 --target Personal to 2024-05-01

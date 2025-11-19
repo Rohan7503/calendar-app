@@ -1,0 +1,46 @@
+create calendar --name Work --timezone America/New_York
+
+edit calendar --name Work --property timezone America/Chicago
+edit calendar --name Personal --property name PersonalLife
+
+use calendar --name Work
+
+create event Meeting from 2025-10-02T10:00 to 2025-10-02T11:00
+create event "Daily Sprint" from 2025-10-28T10:00 to 2025-10-28T11:00 repeats WRF for 20 times
+create event "Daily Sprint" from 2025-10-28T10:00 to 2025-10-28T11:00 repeats WRF until 2026-03-28
+create event "Daily Sprint" on 2025-11-04
+create event "Daily Sprint" on 2025-11-04 repeats RF for 10 times
+create event "Daily Sprint" on 2025-11-04 repeats RF until 2026-01-28
+
+edit event start "Daily Sprint" from 2025-10-28T10:00 to 2025-10-28T11:00 with 2025-10-28T09:00
+edit event end "Daily Sprint" from 2025-10-02T10:00 to 2025-10-28T11:00 with 2025-10-28T12:00
+edit event subject "Daily Sprint" from 2025-10-02T10:00 to 2025-10-28T11:00 with "Master Sprint"
+edit event status "Master Sprint" from 2025-10-02T10:00 to 2025-10-28T11:00 with "private"
+edit event status "Daily Sprint" from 2025-10-02T10:00 to 2025-10-28T11:00 with "public"
+edit event location "Daily Sprint" from 2025-10-02T10:00 to 2025-10-28T11:00 with "Hyderabad"
+edit event description "Daily Sprint" from 2025-10-02T10:00 to 2025-10-28T11:00 with "Daily meet for project"
+
+edit events location "Daily Sprint" from 2025-10-28T10:00 with "Bengal"
+edit events subject "Daily Sprint" from 2025-10-28T10:00 with "Daily Master Sprint"
+edit events status "Daily Sprint" from 2025-10-28T10:00 with "public"
+edit events status "Master Sprint" from 2025-10-28T10:00 with "private"
+edit events start "Daily Sprint" from 2025-10-28T10:00 with 2025-10-28T09:00
+edit events end "Daily Sprint" from 2025-10-28T10:00 with 2025-10-28T13:00
+edit events description "Master Sprint" from 2025-10-28T10:00 with "Cumulative project meet"
+
+edit series end "Daily Sprint" from 2025-10-28T10:00 with 2025-10-28T15:00
+edit series start "Daily Sprint" from 2025-10-28T10:00 with 2025-10-28T08:00
+edit series status "Daily Sprint" from 2025-10-28T10:00 with "public"
+edit series status "Daily Sprint" from 2025-10-28T10:00 with "private"
+edit series subject "Daily Sprint" from 2025-10-28T10:00 with "Casual Meet"
+edit series location "Daily Sprint" from 2025-10-28T10:00 with "Mumbai"
+edit series description "Daily Sprint" from 2025-10-28T10:00 with "General meet for project discussion"
+
+print events on 2025-11-04
+print events from 2025-10-28T10:00 to 2025-10-28T11:00
+
+export cal xyz.csv
+
+show status on 2025-10-28T10:00
+
+exit

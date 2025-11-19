@@ -1,0 +1,14 @@
+create calendar --name C1 --timezone America/New_York
+use calendar --name C1
+create event Exam from 2025-09-02T09:30 to 2025-09-02T10:30
+create event PDP from 2025-09-02T10:00 to 2025-09-02T11:00 repeats MWF for 3 times
+edit events subject PDP from 2025-09-03T10:00 with PDPClassTemp
+edit series subject PDPClassTemp from 2025-09-03T10:00 with PDPClass
+edit events start PDPClass from 2025-09-03T10:00 with 2025-09-03T09:50
+edit series start PDPClass from 2025-09-02T10:00 with 2025-09-02T09:45
+print events from 2025-09-02T00:00 to 2025-09-06T00:00
+create calendar --name C2 --timezone America/Los_Angeles
+copy events between 2025-09-02 and 2025-09-04 --target C2 to 2025-01-01
+use calendar --name C2
+print events from 2025-01-01T00:00 to 2025-01-06T00:00
+Exit
