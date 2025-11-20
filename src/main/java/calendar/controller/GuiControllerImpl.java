@@ -36,35 +36,35 @@ public class GuiControllerImpl implements Features {
   }
 
   @Override
-  public void requestEventsForDay(LocalDate date) {
+  public void requestEventsForDay(String date) {
 
   }
 
   @Override
-  public void createEvent(String subject, LocalDateTime start, LocalDateTime end) {
+  public void createEvent(String subject, String start, String end) {
 
   }
 
   @Override
-  public void createEventSeriesByCount(String subject, LocalDateTime start, LocalDateTime end,
-                                       String weekdays, int count) {
+  public void createEventSeriesByCount(String subject, String start, String end,
+                                       String weekdays, String count) {
 
   }
 
   @Override
-  public void createEventSeriesUntilDate(String subject, LocalDateTime start, LocalDateTime end,
-                                         String weekdays, LocalDate untilDate) {
+  public void createEventSeriesUntilDate(String subject, String start, String end,
+                                         String weekdays, String untilDate) {
 
   }
 
   @Override
-  public void editEvent(String property, String subject, LocalDateTime start, LocalDateTime end,
+  public void editEvent(String property, String subject, String start, String end,
                         String newValue) {
 
   }
 
   @Override
-  public void editEvents(String property, String subject, LocalDateTime start, String newValue,
+  public void editEvents(String property, String subject, String start, String newValue,
                          boolean editWholeSeries) {
 
   }
