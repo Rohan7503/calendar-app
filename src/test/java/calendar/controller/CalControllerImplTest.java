@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
@@ -58,13 +59,24 @@ public class CalControllerImplTest {
    */
   static class SingleMockModel implements SingleCalModelInterface {
     private final StringBuilder log;
+    private final List<Event> events;
 
     SingleMockModel(StringBuilder log) {
       this.log = log;
+      this.events = new ArrayList<>();
     }
 
     @Override
     public void addEvent(Event e) throws IllegalArgumentException {
+      if (e == null) {
+        log.append("Event cannot be null");
+        return;
+      }
+      for (Event event : this.events) {
+        if (e.equals(event)) {
+          log.append("Event already exists");
+        }
+      }
       log.append("subject=")
           .append(e.getSubject())
           .append(", start=")
@@ -77,6 +89,9 @@ public class CalControllerImplTest {
     @Override
     public void addEventSeriesForCount(Event prototype, String weekdays, int count)
         throws IllegalArgumentException {
+      if (count <= 0) {
+        log.append("Count must be positive");
+      }
       log.append("subject=")
           .append(prototype.getSubject())
           .append(", start=")
@@ -142,6 +157,14 @@ public class CalControllerImplTest {
     @Override
     public List<Event> getEventsInRange(LocalDateTime start, LocalDateTime end)
         throws IllegalArgumentException {
+      if (start == null || end == null) {
+        log.append("Start and end date/time cannot be null.");
+        return null;
+      }
+      if (start.isAfter(end)) {
+        log.append("Start date/time cannot be after end date/time.");
+        return null;
+      }
       log.append("start=")
           .append(start.toString() + " ")
           .append(", end=")
@@ -228,15 +251,12 @@ public class CalControllerImplTest {
   }
 
   private final MultiCalModelInterface mockModel = new MockModel(new StringBuilder());
-
   private final CalViewInterface mockView = new MockView(new StringBuilder());
-
   private CalControllerInterface calController;
   private File inputFile;
   private File outputFile;
   private OutputStream outStream;
   private Readable inStream = new InputStreamReader(System.in);
-  //private InputStream inStream;
 
 
   @Test

@@ -66,6 +66,21 @@ public class MultiCalControllerImplTest {
 
     @Override
     public void createCalendar(String calName, ZoneId timezone) throws IllegalArgumentException {
+      if (calName == null || calName.isBlank()) {
+        log.append("Calendar name cannot be null or empty.")
+            .append(System.lineSeparator());
+        return;
+      }
+      if (timezone == null) {
+        log.append("Timezone cannot be null.")
+            .append(System.lineSeparator());
+        return;
+      }
+      if (calendars.containsKey(calName)) {
+        log.append("A calendar with the same name already exists.")
+            .append(System.lineSeparator());
+        return;
+      }
       log.append("calName: ").append(calName)
           .append(System.lineSeparator())
           .append("timeZone: ").append(timezone)
@@ -144,11 +159,11 @@ public class MultiCalControllerImplTest {
 
     private void setActiveCalendar(String calendarName) {
       if (calendarName == null || calendarName.isBlank()) {
-        throw new IllegalArgumentException("Calendar name cannot be null or empty.");
+        log.append("Calendar name cannot be null or empty.");
       }
       SingleCalModelInterface calendar = calendars.get(calendarName);
       if (calendar == null) {
-        throw new IllegalArgumentException("Calendar with this name does not exist.");
+        log.append("Calendar with this name does not exist.");
       }
       this.activeCalendar = calendar;
     }
