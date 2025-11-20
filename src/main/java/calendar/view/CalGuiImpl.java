@@ -158,6 +158,11 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   }
 
   @Override
+  public void refreshEvents() {
+
+  }
+
+  @Override
   public void showMessage(String message) {
     JOptionPane.showMessageDialog(this, message);
   }
