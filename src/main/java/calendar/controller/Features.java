@@ -30,7 +30,7 @@ public interface Features {
    *
    * @param date the date to get events on
    */
-  void requestEventsForDay(LocalDate date);
+  void requestEventsForDay(String date);
 
   /**
    * Creates a single event on the active calendar.
@@ -39,7 +39,7 @@ public interface Features {
    * @param start   start date/time in the calendar's timezone
    * @param end     end date/time in the calendar's timezone
    */
-  void createEvent(String subject, LocalDateTime start, LocalDateTime end);
+  void createEvent(String subject, String start, String end);
 
   /**
    * Creates an event series by count.
@@ -50,8 +50,8 @@ public interface Features {
    * @param weekdays weekdays on which the event repeats
    * @param count    number of occurrences
    */
-  void createEventSeriesByCount(String subject, LocalDateTime start, LocalDateTime end,
-                                String weekdays, int count);
+  void createEventSeriesByCount(String subject, String start, String end,
+                                String weekdays, String count);
 
   /**
    * Creates an event series until a given date.
@@ -62,8 +62,8 @@ public interface Features {
    * @param weekdays  weekdays on which the event repeats
    * @param untilDate end date for the series (inclusive)
    */
-  void createEventSeriesUntilDate(String subject, LocalDateTime start, LocalDateTime end,
-                                  String weekdays, LocalDate untilDate);
+  void createEventSeriesUntilDate(String subject, String start, String end,
+                                  String weekdays, String untilDate);
 
   /**
    * Edit a single event.
@@ -74,7 +74,7 @@ public interface Features {
    * @param end      the end date/time of the event
    * @param newValue the new value for the property
    */
-  void editEvent(String property, String subject, LocalDateTime start, LocalDateTime end,
+  void editEvent(String property, String subject, String start, String end,
                  String newValue);
 
   /**
@@ -87,7 +87,7 @@ public interface Features {
    * @param editWholeSeries if true, applies the edit to all events in the series; otherwise, edits
    *                        this event and all events after this in the series
    */
-  void editEvents(String property, String subject, LocalDateTime start, String newValue,
+  void editEvents(String property, String subject, String start, String newValue,
                   boolean editWholeSeries);
 }
 
