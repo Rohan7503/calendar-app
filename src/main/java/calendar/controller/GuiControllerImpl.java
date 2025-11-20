@@ -39,6 +39,7 @@ public class GuiControllerImpl implements Features {
 
   @Override
   public void requestEventsForDay(String date) {
+    //List<Event> events = model.getActiveCalendar().getEventsInRange(LocalDate.parse(date).atStartOfDay(), LocalDate.parse(date).plusDays(1).atStartOfDay());
     List<Event> events = model.getActiveCalendar().getAllEvents();
     view.showEventsForDay(LocalDate.parse(date), events);
   }
@@ -57,6 +58,8 @@ public class GuiControllerImpl implements Features {
         .end(LocalDateTime.parse(end))
         .build();
     model.getActiveCalendar().addEventSeriesForCount(p, weekdays, Integer.parseInt(count));
+    view.showMessage("Created");
+    view.refreshEvents();
   }
 
   @Override
@@ -68,12 +71,16 @@ public class GuiControllerImpl implements Features {
   @Override
   public void editEvent(String property, String subject, String start, String end,
                         String newValue) {
-
+    model.getActiveCalendar().editEvent(property, subject, LocalDateTime.parse(start), LocalDateTime.parse(end), newValue);
+    view.showMessage("Edited");
+    view.refreshEvents();
   }
 
   @Override
   public void editEvents(String property, String subject, String start, String newValue,
                          boolean editWholeSeries) {
-
+    model.getActiveCalendar().editEvents(property, subject, LocalDateTime.parse(start), newValue, editWholeSeries);
+    view.showMessage("Edited");
+    view.refreshEvents();
   }
 }
