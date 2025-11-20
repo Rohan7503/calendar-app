@@ -2,6 +2,7 @@ package calendar.view;
 
 import calendar.controller.Features;
 import calendar.model.Event;
+import calendar.model.EventProperty;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -12,19 +13,20 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -41,14 +43,17 @@ import javax.swing.SwingConstants;
 public class CalGuiImpl extends JFrame implements CalGuiInterface {
   private Features features;
 
-  private final JPanel calendarListPanel = new JPanel();
-  private final JPanel monthGridPanel = new JPanel();
-  private final JPanel dayEventsPanel = new JPanel();
-  private LocalDate selectedDate = null;
+  private final JPanel calendarListPanel;
+  private final JPanel monthGridPanel;
+  private final JPanel dayEventsPanel;
+  private final List<JButton> dayButtons;
+  private final JButton createCalendarButton;
+  private final JButton createEventButton;
+  private final JButton createSeriesCountButton;
+  private final JButton createSeriesUntilButton;
+  private final JButton editEventsButton;
+  private LocalDate selectedDate;
   private YearMonth displayedMonth;
-  private final List<JButton> dayButtons = new ArrayList<>();
-  private final JButton createCalendarButton =  new JButton("Create Calendar");
-  private final JButton createEventButton = new  JButton("Create Event");
 
   /**
    * Initialise the swing components.
@@ -58,8 +63,18 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setSize(1100, 700);
 
-    setLayout(new BorderLayout());
+    calendarListPanel = new JPanel();
+    monthGridPanel = new JPanel();
+    dayEventsPanel = new JPanel();
+    dayButtons = new ArrayList<>();
 
+    createCalendarButton =  new JButton("Create Calendar");
+    createEventButton = new  JButton("Create Event");
+    createSeriesCountButton = new JButton("Create Series (Count)");
+    createSeriesUntilButton = new JButton("Create Series (Until Date)");
+    editEventsButton = new JButton("Edit Multiple Events");
+
+    setLayout(new BorderLayout());
     addTopActionButtons(BorderLayout.NORTH);
     createCalendarListPanel(BorderLayout.WEST);
     createDayEventsPanel(BorderLayout.EAST);
@@ -78,16 +93,9 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
 
     createCalendarButton.addActionListener(e -> openCreateCalendarDialog());
     createEventButton.addActionListener(e -> openCreateEventDialog());
-    for (JButton b : dayButtons) {
-      b.addActionListener(evt -> {
-        LocalDate day = (LocalDate) b.getClientProperty("date");
-        if (day != null) {
-          selectedDate = day;
-          refreshDayButtonStyles();
-          features.requestEventsForDay(day);
-        }
-      });
-    }
+    createSeriesCountButton.addActionListener(e -> openCreateEventSeriesDialog(true));
+    createSeriesUntilButton.addActionListener(e -> openCreateEventSeriesDialog(false));
+    editEventsButton.addActionListener(e -> openEditEventsDialog());
   }
 
   @Override
@@ -141,6 +149,13 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     dayEventsPanel.repaint();
   }
 
+  @Override
+  public void refreshEvents() {
+    if (selectedDate == null) {
+      return;
+    }
+    features.requestEventsForDay(selectedDate.toString());
+  }
 
   @Override
   public void showMessage(String message) {
@@ -154,24 +169,17 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   }
 
 
+
+
   private void addTopActionButtons(Object position) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
 
-    JButton createSeriesCountBtn = new JButton("Create Series (Count)");
-    createSeriesCountBtn.addActionListener(e -> openCreateEventSeriesDialog(true));
-
-    JButton createSeriesUntilBtn = new JButton("Create Series (Until Date)");
-    createSeriesUntilBtn.addActionListener(e -> openCreateEventSeriesDialog(false));
-
-    JButton editEventsBtn = new JButton("Edit Multiple Events");
-    editEventsBtn.addActionListener(e -> openEditEventsDialog());
-
     buttonPanel.add(createCalendarButton);
     buttonPanel.add(createEventButton);
-    buttonPanel.add(createSeriesCountBtn);
-    buttonPanel.add(createSeriesUntilBtn);
-    buttonPanel.add(editEventsBtn);
+    buttonPanel.add(createSeriesCountButton);
+    buttonPanel.add(createSeriesUntilButton);
+    buttonPanel.add(editEventsButton);
 
     this.add(buttonPanel, position);
     this.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -195,8 +203,38 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     buildInitialMonthGrid();
     monthGridPanel.setPreferredSize(new Dimension(350, 250));
     JPanel gridWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    gridWrapper.add(createMonthHeaderPanel());
     gridWrapper.add(monthGridPanel);
     add(gridWrapper, position);
+  }
+
+  private JPanel createMonthHeaderPanel() {
+    JPanel monthHeader = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+    JButton prevBtn = new JButton("<");
+    JButton nextBtn = new JButton(">");
+
+    JLabel monthLabel = new JLabel(displayedMonth.getMonth().name() + " " + displayedMonth.getYear(),
+        SwingConstants.CENTER);
+
+    // Update month label and grid when navigating
+    prevBtn.addActionListener(e -> {
+      displayedMonth = displayedMonth.minusMonths(1);
+      monthLabel.setText(displayedMonth.getMonth().name() + " " + displayedMonth.getYear());
+      buildInitialMonthGrid();
+    });
+
+    nextBtn.addActionListener(e -> {
+      displayedMonth = displayedMonth.plusMonths(1);
+      monthLabel.setText(displayedMonth.getMonth().name() + " " + displayedMonth.getYear());
+      buildInitialMonthGrid();
+    });
+
+    monthHeader.add(prevBtn);
+    monthHeader.add(monthLabel);
+    monthHeader.add(nextBtn);
+
+    return monthHeader;
   }
 
 
@@ -220,6 +258,11 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     for (int day = 1; day <= daysInMonth; day++) {
       LocalDate date = displayedMonth.atDay(day);
       JButton b = new JButton(String.valueOf(day));
+      b.addActionListener(evt -> {
+        selectedDate = date;
+        refreshDayButtonStyles();
+        features.requestEventsForDay(date.toString());
+      });
       b.putClientProperty("date", date);
       styleDayButton(b, date);
       dayButtons.add(b);
@@ -258,8 +301,6 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     }
     monthGridPanel.repaint();
   }
-
-
 
   private void openCreateCalendarDialog() {
     String name = JOptionPane.showInputDialog(this, "Enter calendar name:");
@@ -301,18 +342,14 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     p.add(remRows, BorderLayout.CENTER);
 
     int result = JOptionPane.showConfirmDialog(this, p, "Create Event",
-        JOptionPane.OK_CANCEL_OPTION);
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
     if (result == JOptionPane.OK_OPTION) {
-      try {
-        features.createEvent(
-            subject.getText(),
-            LocalDateTime.parse(startDate.getText() + "T" + startTime.getText()),
-            LocalDateTime.parse(endDate.getText() + "T" + endTime.getText())
-        );
-      } catch (DateTimeParseException ex) {
-        showError("Invalid date format.");
-      }
+      features.createEvent(
+          subject.getText(),
+          startDate.getText().trim() + "T" + startTime.getText().trim(),
+          endDate.getText().trim() + "T" + endTime.getText().trim()
+      );
     }
   }
 
@@ -323,12 +360,10 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     JTextField subjectField = new JTextField(20);
     panel.add(new JLabel("Subject:"));
     panel.add(subjectField);
-
     JTextField startDateField = new JTextField(
-        (selectedDate == null) ? LocalDate.now().toString() : selectedDate.toString(), 10);
+        (selectedDate == null) ? "2025-01-01" : selectedDate.toString(), 10);
     JTextField startTimeField = new JTextField("08:00", 5);
     JTextField endTimeField = new JTextField("17:00", 5);
-
     JPanel timePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     timePanel.add(new JLabel("Start Date (YYYY-MM-DD):"));
     timePanel.add(startDateField);
@@ -347,7 +382,6 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
       weekdaysPanel.add(cb);
     }
     panel.add(weekdaysPanel);
-
     JTextField countOrUntilField = new JTextField(5);
     panel.add(new JLabel(isByCount ? "Number of occurrences:" : "Until date (YYYY-MM-DD):"));
     panel.add(countOrUntilField);
@@ -356,33 +390,53 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
         isByCount ? "Create Event Series (Count)" : "Create Event Series (Until Date)",
         JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
     if (result == JOptionPane.OK_OPTION) {
-      try {
-        String subject = subjectField.getText().trim();
-        LocalDate startDate = LocalDate.parse(startDateField.getText().trim());
-        LocalDateTime start = LocalDateTime.parse(startDate + "T" + startTimeField.getText().trim());
-        LocalDateTime end = LocalDateTime.parse(startDate + "T" + endTimeField.getText().trim());
-
-        StringBuilder weekdays = new StringBuilder();
-        for (String key : "MTWRFSU".split("")) {
-          if (checkBoxes.get(key).isSelected()) {
-            weekdays.append(key);
-          }
-        }
-        if (isByCount) {
-          int count = Integer.parseInt(countOrUntilField.getText().trim());
-          features.createEventSeriesByCount(subject, start, end, weekdays.toString(), count);
-        } else {
-          LocalDate untilDate = LocalDate.parse(countOrUntilField.getText().trim());
-          features.createEventSeriesUntilDate(subject, start, end, weekdays.toString(), untilDate);
-        }
-      } catch (Exception ex) {
-        showError("Error creating event series: " + ex.getMessage());
+      String subject = subjectField.getText();
+      String start = startDateField.getText().trim() + "T" + startTimeField.getText().trim();
+      String end = startDateField.getText().trim() + "T" + endTimeField.getText().trim();
+      String countOrUntil = countOrUntilField.getText().trim();
+      String weekdays = "MTWRFSU".chars().mapToObj(c -> String.valueOf((char) c))
+          .filter(k -> checkBoxes.get(k).isSelected()).collect(Collectors.joining());
+      if (isByCount) {
+        features.createEventSeriesByCount(subject, start, end, weekdays, countOrUntil);
+      } else {
+        features.createEventSeriesUntilDate(subject, start, end, weekdays, countOrUntil);
       }
     }
   }
 
+  private void openEditEventDialog(Event event) {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-  private void openEditEventDialog(Event e) {}
+    String[] properties = Arrays.stream(EventProperty.values())
+        .map(Enum::name)
+        .toArray(String[]::new);
+    JComboBox<String> propertyBox = new JComboBox<>(properties);
+    panel.add(new JLabel("Property to edit:"));
+    panel.add(propertyBox);
+
+    JTextField newValueField = new JTextField(20);
+    panel.add(new JLabel("New value:"));
+    panel.add(newValueField);
+
+    int result = JOptionPane.showConfirmDialog(this, panel,
+        "Edit Event: " + event.getSubject(),
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+    if (result == JOptionPane.OK_OPTION) {
+      String property = propertyBox.getSelectedItem().toString();
+      String newValue = newValueField.getText().trim();
+
+      features.editEvent(
+          property,
+          event.getSubject(),
+          event.getStart().toString(),
+          event.getEnd().toString(),
+          newValue
+      );
+    }
+  }
+
   private void openEditEventsDialog(){}
 
 }

@@ -1,9 +1,11 @@
 package calendar.controller;
 
+import calendar.model.Event;
 import calendar.model.MultiCalModelInterface;
 import calendar.view.CalGuiInterface;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * This controller mediates the interaction between the GUI and model. It implements the
@@ -37,7 +39,8 @@ public class GuiControllerImpl implements Features {
 
   @Override
   public void requestEventsForDay(String date) {
-
+    List<Event> events = model.getActiveCalendar().getAllEvents();
+    view.showEventsForDay(LocalDate.parse(date), events);
   }
 
   @Override
@@ -48,7 +51,12 @@ public class GuiControllerImpl implements Features {
   @Override
   public void createEventSeriesByCount(String subject, String start, String end,
                                        String weekdays, String count) {
-
+    Event p = Event.getBuilder()
+        .subject(subject)
+        .start(LocalDateTime.parse(start))
+        .end(LocalDateTime.parse(end))
+        .build();
+    model.getActiveCalendar().addEventSeriesForCount(p, weekdays, Integer.parseInt(count));
   }
 
   @Override
