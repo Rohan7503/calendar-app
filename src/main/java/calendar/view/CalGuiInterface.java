@@ -40,6 +40,11 @@ public interface CalGuiInterface {
   void showEventsForDay(LocalDate day, List<Event> events);
 
   /**
+   * Re-fetch the events to be displayed.
+   */
+  void refreshEvents();
+
+  /**
    * Display a message to the user.
    *
    * @param message the message to display
