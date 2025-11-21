@@ -109,7 +109,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
       JButton btn = new JButton(name);
       btn.setAlignmentX(Component.CENTER_ALIGNMENT);
       if (name.equals(activeCalendar)) {
-        btn.setBackground(Color.LIGHT_GRAY);
+        btn.setBackground(Color.ORANGE);
       }
       btn.putClientProperty("calendarName", name);
       btn.addActionListener(e -> features.selectCalendar(name));
@@ -218,12 +218,12 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
    */
   private void createMonthGridPanel(Object position) {
     displayedMonth = YearMonth.now();
-    JPanel monthHeader = createMonthHeaderPanel();
     monthGridPanel.setLayout(new GridLayout(0, 7));
     buildInitialMonthGrid();
 
     JPanel monthWrapper = new JPanel();
     monthWrapper.setLayout(new BoxLayout(monthWrapper, BoxLayout.Y_AXIS));
+    JPanel monthHeader = createMonthHeaderPanel();
     monthWrapper.add(monthHeader);
     monthWrapper.add(monthGridPanel);
 
@@ -469,13 +469,13 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-    JTextField subject = createLabelTextField(panel, "Subject:", "", 20);
-    JTextField startDate = createLabelTextField(panel, "Start Date (YYYY-MM-DD):",
+    final JTextField subject = createLabelTextField(panel, "Subject:", "", 20);
+    final JTextField startDate = createLabelTextField(panel, "Start Date (YYYY-MM-DD):",
         (selectedDate == null) ? "2025-01-01" : selectedDate.toString(), 15);
-    JTextField startTime = createLabelTextField(panel, "Start Time (HH:MM):", "08:00", 10);
+    final JTextField startTime = createLabelTextField(panel, "Start Time (HH:MM):", "08:00", 10);
 
-    JComboBox<String> propertyBox = createPropertyDropdown(panel);
-    JTextField newValueField = createLabelTextField(panel, "New Value:", "", 20);
+    final JComboBox<String> propertyBox = createPropertyDropdown(panel);
+    final JTextField newValueField = createLabelTextField(panel, "New Value:", "", 20);
 
     JRadioButton wholeSeries = new JRadioButton("Edit entire series");
     JRadioButton fromHere = new JRadioButton("Edit from this event onwards");
