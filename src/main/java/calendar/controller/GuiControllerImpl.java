@@ -2,8 +2,6 @@ package calendar.controller;
 
 import calendar.model.MultiCalModelInterface;
 import calendar.view.CalGuiInterface;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * This controller mediates the interaction between the GUI and model. It implements the
