@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
@@ -58,13 +59,25 @@ public class CalControllerImplTest {
    */
   static class SingleMockModel implements SingleCalModelInterface {
     private final StringBuilder log;
+    private final List<Event> events;
 
     SingleMockModel(StringBuilder log) {
       this.log = log;
+      this.events = new ArrayList<>();
     }
 
     @Override
     public void addEvent(Event e) throws IllegalArgumentException {
+      if (e == null) {
+        log.append("Event cannot be null");
+        return;
+      }
+      for (Event event : this.events) {
+        if (e.equals(event)) {
+          throw new IllegalArgumentException("Event already exists");
+        }
+      }
+      this.events.add(e);
       log.append("subject=")
           .append(e.getSubject())
           .append(", start=")
@@ -77,6 +90,9 @@ public class CalControllerImplTest {
     @Override
     public void addEventSeriesForCount(Event prototype, String weekdays, int count)
         throws IllegalArgumentException {
+      if (count <= 0) {
+        throw new IllegalArgumentException("Count must be positive");
+      }
       log.append("subject=")
           .append(prototype.getSubject())
           .append(", start=")
@@ -93,6 +109,12 @@ public class CalControllerImplTest {
     @Override
     public void addEventSeriesUntilDate(Event prototype, String weekdays, LocalDate endDate)
         throws IllegalArgumentException {
+      if (endDate == null) {
+        throw new IllegalArgumentException("End date cannot be null");
+      }
+      if (endDate.isBefore(prototype.getStart().toLocalDate())) {
+        throw new IllegalArgumentException("End date cannot be before the prototype's start date");
+      }
       log.append("subject=")
           .append(prototype.getSubject())
           .append(", start=")
@@ -142,12 +164,18 @@ public class CalControllerImplTest {
     @Override
     public List<Event> getEventsInRange(LocalDateTime start, LocalDateTime end)
         throws IllegalArgumentException {
+      if (start == null || end == null) {
+        throw new IllegalArgumentException("Start and end date/time cannot be null.");
+      }
+      if (start.isAfter(end)) {
+        throw new IllegalArgumentException("Start date/time cannot be after end date/time.");
+      }
       log.append("start=")
           .append(start.toString() + " ")
           .append(", end=")
           .append(end.toString() + " ")
           .append(System.lineSeparator());
-      return List.of();
+      return events;
     }
 
     @Override
@@ -228,15 +256,12 @@ public class CalControllerImplTest {
   }
 
   private final MultiCalModelInterface mockModel = new MockModel(new StringBuilder());
-
   private final CalViewInterface mockView = new MockView(new StringBuilder());
-
   private CalControllerInterface calController;
   private File inputFile;
   private File outputFile;
   private OutputStream outStream;
   private Readable inStream = new InputStreamReader(System.in);
-  //private InputStream inStream;
 
 
   @Test
@@ -267,7 +292,6 @@ public class CalControllerImplTest {
         "",
         "exit"
     );
-    //inStream = new ByteArrayInputStream(userInput.getBytes());
     inStream = new StringReader(userInput);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -285,7 +309,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "create event Meeting from 2025-10-02T10:00 to 2025-10-02T11:00"
         + System.lineSeparator() + "create event Lunch from 2025-10-03T12:00 to 2025-10-03T13:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(userInput.getBytes());
     inStream = new StringReader(userInput);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -303,7 +326,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "crete event Meeting from 2025-10-02T10:00 to 2025-10-02T11:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     outStream = new ByteArrayOutputStream();
     calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -323,7 +345,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "create event \"Daily Sprint\" "
         + "from 2025-2-28T10:00 to 2025-2-28T11:00 repeats WRF for 20 times"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -347,7 +368,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "create event \"Daily Sprint\" "
         + "from 2025-2-28T10:00 to 2025-2-28T11:00 repeats GTH for 20 times"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     outStream = new ByteArrayOutputStream();
     calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -366,7 +386,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "create event Meeting from 2025-10-02T10:00 to 2025-10-02T11:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -388,7 +407,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "create event Meeting from 2025-10-02T10:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -406,7 +424,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "create event \"Daily Sprint\" on 2025-54-04"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -424,7 +441,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "create event Meeting from 2025-10-2T10:00 to 2025-10-02T11:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -445,7 +461,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 to 2025-45-28T11:00 repeats WRF for 20 times"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createSeriesUntil.getBytes());
     inStream = new StringReader(createSeriesUntil);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -463,7 +478,6 @@ public class CalControllerImplTest {
         + "create event \"Daily Sprint\" on 2025-11-04 repeats RF until 2026-78-28"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createSeriesUntil.getBytes());
     inStream = new StringReader(createSeriesUntil);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -481,7 +495,6 @@ public class CalControllerImplTest {
         + "create event \"Daily Sprint\" on 2025-45-04 repeats RF until 2026-05-28"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createSeriesUntil.getBytes());
     inStream = new StringReader(createSeriesUntil);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -499,7 +512,6 @@ public class CalControllerImplTest {
         + "create event \"Daily Sprint\" on 2025-54-04 repeats RF for 10 times"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createSeriesUntil.getBytes());
     inStream = new StringReader(createSeriesUntil);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -517,7 +529,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 to 2025-10-28T11:00 repeats WRF for 20 times"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createSeriesUntil.getBytes());
     inStream = new StringReader(createSeriesUntil);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -538,7 +549,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "create event \"Daily Sprint\" "
         + "from 2025-10-28T10:00 to 2025-54-28T11:00 repeats WRF until 2026-03-28"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createSeriesCount.getBytes());
+
     inStream = new StringReader(createSeriesCount);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -555,7 +566,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "create event \"Daily Sprint\" "
         + "from 2025-10-28T10:00 to 2025-10-28T11:00 repeats WRF until 2026-03-28"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createSeriesCount.getBytes());
+
     inStream = new StringReader(createSeriesCount);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -575,7 +586,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "create event \"Daily Sprint\" on 2025-11-4"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createAllDayEvent.getBytes());
+
     inStream = new StringReader(createAllDayEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -591,7 +602,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "create event \"Daily Sprint\" on 2025-11-04"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createAllDayEvent.getBytes());
+
     inStream = new StringReader(createAllDayEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -608,7 +619,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "create event \"Daily Sprint\" on 2025-11-04 "
         + "repeats RF until 2026-01-28"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createAllDaySeriesUntil.getBytes());
+
     inStream = new StringReader(createAllDaySeriesUntil);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -628,7 +639,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "create event \"Daily Sprint\" on 2025-11-04 "
         + "repeats RF for 10 times" + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createAllDayEventCount.getBytes());
+
     inStream = new StringReader(createAllDayEventCount);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -650,7 +661,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "edit event start \"Daily Sprint\" "
         + "from 2025-10-28T10:00 to 2025-1-2T11:00 with 2025-10-28T09:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -663,13 +674,32 @@ public class CalControllerImplTest {
   }
 
   @Test
-  public void testInteractiveModeEditEventIlegalDateWithActiveCalendar() {
+  public void testInteractiveModeEditEventInvalidDateWithActiveCalendarCommandLenTen() {
+    String editEvent = "create calendar --name Birthday --timezone Australia/Sydney"
+        + System.lineSeparator() + "use calendar --name Birthday"
+        + System.lineSeparator() + "edit event start meet "
+        + "from 2025-10-28T10:00 to 2025-1-2T11:00 with 2025-10-28T09:00"
+        + System.lineSeparator() + "exit";
+
+    inStream = new StringReader(editEvent);
+    calController = new CalControllerImpl(mockModel, mockView, inStream);
+    calController.runInteractive();
+    String viewLogs = ((MockView) mockView).getLogs();
+
+    assertTrue("Expected successfully to appear in log,",
+        viewLogs.contains("Invalid date-time format: " + System.lineSeparator()
+            + "Expected format: YYYY-MM-DDThh:mm (e.g., 2025-11-04T10:30)"));
+
+  }
+
+  @Test
+  public void testInteractiveModeEditEventIllegalDateWithActiveCalendar() {
     String editEvent = "create calendar --name Birthday --timezone Australia/Sydney"
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "edit event start \"Daily Sprint\" "
         + "from 2025-10-28T10:00 to 2025-54-02T11:00 with 2025-10-28T09:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -686,7 +716,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "edit event start \"Daily Sprint\" "
         + "from 2025-10-28T10:00 to 2025-10-28T11:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -703,7 +733,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "edit event start \"Daily Sprint\" "
         + "from 2025-10-28T10:00 to 2025-10-28T11:00 with 2025-10-28T09:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -725,7 +755,7 @@ public class CalControllerImplTest {
         + "from 2025-10-02T10:00 to 2025-10-28T11:00 with 2025-10-28T12:00"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -743,7 +773,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "edit event subject \"Daily Sprint\" "
         + "from 2025-10-02T10:00 to 2025-10-28T11:00 with \"Master Sprint\""
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -762,7 +792,7 @@ public class CalControllerImplTest {
         + "from 2025-10-02T10:00 to 2025-10-28T11:00 with \"Hyderabad\""
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -781,7 +811,6 @@ public class CalControllerImplTest {
         + System.lineSeparator()
         + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -802,7 +831,7 @@ public class CalControllerImplTest {
         + "from 2025-10-02T10:00 to 2025-10-28T11:00 with \"private\""
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -820,7 +849,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "edit event status \"Daily Sprint\" "
         + "from 2025-10-02T10:00 to 2025-10-28T11:00 with \"public\""
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(editEvent.getBytes());
+
     inStream = new StringReader(editEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
 
@@ -842,7 +871,23 @@ public class CalControllerImplTest {
         + "from 2025-10-8T10:00 with \"Daily Master Sprint\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
+    inStream = new StringReader(editEvents);
+    calController = new CalControllerImpl(mockModel, mockView, inStream);
+    calController.runInteractive();
+
+    String viewLogs = ((MockView) mockView).getLogs();
+    assertTrue(viewLogs.contains("Invalid date-time format:"));
+
+  }
+
+  @Test
+  public void testInteractiveModeEditEventsInvalidDateWithActiveCalendarLenEight() {
+    String editEvents = "create calendar --name Birthday --timezone Australia/Sydney"
+        + System.lineSeparator() + "use calendar --name Birthday"
+        + System.lineSeparator() + "edit events subject sprint "
+        + "from 2025-10-8T10:00 with meet"
+        + System.lineSeparator() + "exit";
+
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -860,7 +905,6 @@ public class CalControllerImplTest {
         + "from 2025-54-08T10:00 with \"Daily Master Sprint\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -878,7 +922,6 @@ public class CalControllerImplTest {
         + "from 2025-10-8T10:00"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -896,7 +939,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"Daily Master Sprint\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -919,7 +961,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with 2025-10-28T09:00"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -938,7 +979,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with 2025-10-28T13:00"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -957,7 +997,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"private\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -978,7 +1017,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"public\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -998,7 +1036,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"Bengal\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1018,7 +1055,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"Cumulative project meet\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editEvents.getBytes());
     inStream = new StringReader(editEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
 
@@ -1038,7 +1074,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with 2025-10-28T09:00"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editSeries.getBytes());
     inStream = new StringReader(editSeries);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1057,7 +1092,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"Casual Meet\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editSeries.getBytes());
     inStream = new StringReader(editSeries);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1075,7 +1109,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "edit series end \"Daily Sprint\" from 2025-10-28T10:00 "
         + "with 2025-10-28T15:00" + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editSeries.getBytes());
     inStream = new StringReader(editSeries);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1094,7 +1127,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"public\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editSeries.getBytes());
     inStream = new StringReader(editSeries);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
 
@@ -1115,7 +1147,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"private\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editSeries.getBytes());
     inStream = new StringReader(editSeries);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1133,7 +1164,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "edit series location \"Daily Sprint\" "
         + "from 2025-10-28T10:00 with \"Mumbai\"" + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editSeries.getBytes());
     inStream = new StringReader(editSeries);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1152,7 +1182,6 @@ public class CalControllerImplTest {
         + "from 2025-10-28T10:00 with \"General meet for project discussion\""
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(editSeries.getBytes());
     inStream = new StringReader(editSeries);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1171,7 +1200,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "print events on 2025-11-04"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(printOneDayEvents.getBytes());
     inStream = new StringReader(printOneDayEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1190,7 +1218,6 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "print events from 2025-10-28T10:00 to 2025-10-28T11:00"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(printRangeEvents.getBytes());
     inStream = new StringReader(printRangeEvents);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
 
@@ -1206,7 +1233,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "print events on 2025-11-04"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
+
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1229,7 +1256,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "print events on 2025-28-04"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
+
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1248,7 +1275,7 @@ public class CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "print events from 2025-10-28T10:00 to 2025-10-28T11:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
+
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1272,7 +1299,7 @@ public class CalControllerImplTest {
         + System.lineSeparator()
         + "show status on 2025-58-28T10:00"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
+
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -1290,7 +1317,7 @@ public class CalControllerImplTest {
         + "\"Daily Sprint\" on 2025-11-04 "
         + "repeats RF         until 2026-01-28"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
+
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();

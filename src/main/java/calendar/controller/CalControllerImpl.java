@@ -1,21 +1,12 @@
 package calendar.controller;
 
-import calendar.model.CalModelInterface;
-import calendar.model.Event;
-import calendar.model.MultiCalModelImpl;
+
 import calendar.model.MultiCalModelInterface;
 import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiImpl;
 import calendar.view.CalGuiInterface;
 import calendar.view.CalViewInterface;
-import java.io.InputStream;
-import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -29,7 +20,6 @@ public class CalControllerImpl implements CalControllerInterface {
   private final MultiCalModelInterface calModel;
   private final CalViewInterface view;
   private final Parser parser;
-  //private final InputStream in;
   private final Readable readable;
   private SingleCalModelInterface activeCalendar;
 
@@ -42,7 +32,7 @@ public class CalControllerImpl implements CalControllerInterface {
    */
   public CalControllerImpl(MultiCalModelInterface calModel,
                            CalViewInterface view,
-                           Readable  in)
+                           Readable in)
       throws IllegalArgumentException {
     if (view == null || calModel == null) {
       throw new IllegalArgumentException("Model and view must not be null.");
@@ -262,7 +252,9 @@ public class CalControllerImpl implements CalControllerInterface {
     }
     String normalizedCommand = command.trim().replaceAll("\\s+", " ").toLowerCase();
     boolean isCalendarOperations = normalizedCommand.startsWith("create calendar")
-        || normalizedCommand.startsWith("edit calendar");
+        || normalizedCommand.startsWith("edit calendar")
+        || normalizedCommand.startsWith("copy event")
+        || normalizedCommand.startsWith("copy events");
     boolean isUseCommand = normalizedCommand.startsWith("use");
     if (isCalendarOperations || isUseCommand) {
       try {
@@ -288,13 +280,13 @@ public class CalControllerImpl implements CalControllerInterface {
         case "help\\use":
           String useCommand =
               System.lineSeparator() + "use calendar --name <name-of-calendar>"
-              + System.lineSeparator();
+                  + System.lineSeparator();
           view.displayMessage(useCommand);
           break;
         case "help\\createCal":
           String createCalCommand =
               System.lineSeparator() + "create calendar --name <calName> --timezone area/location"
-              + System.lineSeparator();
+                  + System.lineSeparator();
           view.displayMessage(createCalCommand);
           break;
         case "help\\create":

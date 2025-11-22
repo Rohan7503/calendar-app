@@ -41,8 +41,7 @@ class CreateCalendar {
       calModel.createCalendar(command.getArguments().get("calName"), zoneId);
       calView.displayMessage("Calendar created successfully" + System.lineSeparator());
     } catch (DateTimeException e) {
-      throw new IllegalArgumentException("invalid zone" + System.lineSeparator()
-                                        + "use format example : America/New_York");
+      throw new IllegalArgumentException("Invalid Zone");
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException(e.getMessage());
     }

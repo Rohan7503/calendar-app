@@ -50,7 +50,7 @@ public class CopyEvent {
     } catch (DateTimeException e) {
       throw new IllegalArgumentException("invalid date-time");
     } catch (IllegalStateException e) {
-      throw new IllegalStateException("invalid state");
+      throw new IllegalStateException(e.getMessage());
     }
   }
 }
