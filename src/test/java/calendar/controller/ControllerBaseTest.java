@@ -29,7 +29,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
   private File inputFile;
   private File outputFile;
   private OutputStream outStream;
-  //private InputStream inStream;
   private Readable inStream = new InputStreamReader(System.in);
 
 
@@ -46,7 +45,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
   @Test
   public void testNullModel() {
     try {
-      //CalControllerInterface controller = new CalControllerImpl(null, mockView, System.in);
       CalControllerInterface controller = new CalControllerImpl(null, null, inStream);
       fail("Expected null model,view exception");
     } catch (IllegalArgumentException e) {
@@ -57,7 +55,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
   @Test
   public void testNullView() {
     try {
-      //CalControllerInterface controller = new CalControllerImpl(mockModel, null, System.in);
       CalControllerInterface controller = new CalControllerImpl(null, null, inStream);
       fail("Expected null model,view exception");
     } catch (IllegalArgumentException e) {
@@ -68,8 +65,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
   @Test
   public void testInteractiveModeDisplaysWelcomeMessage() {
     String input = "exit" + System.lineSeparator();
-    //InputStream in = new ByteArrayInputStream(input.getBytes());
-    //calController = new CalControllerImpl(mockModel, mockView, in);
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -80,8 +75,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
   @Test
   public void testInteractiveModeDisplayStartMessage() {
     String input = "exit" + System.lineSeparator();
-    //InputStream in = new ByteArrayInputStream(input.getBytes());
-    //calController = new CalControllerImpl(mockModel, mockView, in);
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -94,8 +87,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
   public void testInteractiveModeEmptyInput() {
     try {
       String input = "";
-      //InputStream in = new ByteArrayInputStream(input.getBytes());
-      //calController = new CalControllerImpl(mockModel, mockView, in);
       CalControllerInterface controller = new CalControllerImpl(null, null, inStream);
       calController.runInteractive();
       fail("Expected an no line exception");
@@ -107,7 +98,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
   @Test
   public void testInteractiveModeAppStart() {
     String createEvent = "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -126,7 +116,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
         + System.lineSeparator()
         + "exit";
 
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -139,7 +128,7 @@ public class ControllerBaseTest extends CalControllerImplTest {
   public void testInteractiveModeNullCalendar() {
     String input = "use calendar --name Birthday"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
+
     inStream = new StringReader(input);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -155,7 +144,7 @@ public class ControllerBaseTest extends CalControllerImplTest {
     String createEvent = "create calendar --name Birthday --timezone Australia/Sydney"
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
+
     inStream = new StringReader(createEvent);
     outStream = new ByteArrayOutputStream();
     calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -173,7 +162,7 @@ public class ControllerBaseTest extends CalControllerImplTest {
   public void testInteractiveModeActiveCalendarScannerNextEmpty() {
     String createEvent = "create calendar --name Birthday --timezone Australia/Sydney"
         + System.lineSeparator() + "use calendar --name Birthday";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
+
     inStream = new StringReader(createEvent);
     outStream = new ByteArrayOutputStream();
     calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -192,7 +181,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
         "exit"
     );
 
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -213,7 +201,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
         "exit"
     );
 
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -234,7 +221,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
         + System.lineSeparator() + "help\\create"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -266,7 +252,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
         + System.lineSeparator() + "help\\misc"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     calController = new CalControllerImpl(mockModel, mockView, inStream);
     calController.runInteractive();
@@ -298,7 +283,6 @@ public class ControllerBaseTest extends CalControllerImplTest {
         + System.lineSeparator() + "help/create"
         + System.lineSeparator() + "exit";
 
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
     inStream = new StringReader(createEvent);
     outStream = new ByteArrayOutputStream();
     calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -316,7 +300,7 @@ public class ControllerBaseTest extends CalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "menu"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(createEvent.getBytes());
+
     inStream = new StringReader(createEvent);
     outStream = new ByteArrayOutputStream();
     calController = new CalControllerImpl(mockModel, mockView, inStream);

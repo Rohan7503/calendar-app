@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,13 +19,13 @@ import java.util.List;
 public class GuiControllerImpl implements Features {
   private final MultiCalModelInterface model;
   private final CalGuiInterface view;
-  private  SingleCalModelInterface activeCalendar;
+  private SingleCalModelInterface activeCalendar;
 
   /**
    * Construct the GUI controller with the model and the GUI view.
    *
    * @param model the model of the application
-   * @param view the GUI of the application
+   * @param view  the GUI of the application
    */
   public GuiControllerImpl(MultiCalModelInterface model, CalGuiInterface view) {
     this.model = model;
@@ -36,17 +35,17 @@ public class GuiControllerImpl implements Features {
 
   @Override
   public void createCalendar(String name, String timezone) {
-    try{
+    try {
       ZoneId zoneId = ZoneId.of(timezone);
       model.createCalendar(name, zoneId);
+      model.useCalendar(name);
       List<String> calNames = model.listCalendars();
       view.showMessage("Successfully created calendar - " + name);
       view.showCalendars(calNames, name);
-    }
-    catch (DateTimeException e){
+      view.refreshEvents();
+    } catch (DateTimeException e) {
       view.showError("Invalid time zone");
-    }
-    catch (IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       view.showError((e.getMessage()));
     }
   }
@@ -58,6 +57,7 @@ public class GuiControllerImpl implements Features {
       activeCalendar = model.getActiveCalendar();
       List<String> calNames = model.listCalendars();
       view.showCalendars(calNames, name);
+      view.refreshEvents();
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
     }
@@ -71,13 +71,10 @@ public class GuiControllerImpl implements Features {
       LocalTime startTime = LocalTime.parse("00:00");
       LocalTime endTime = LocalTime.parse("00:00");
       LocalDateTime start = LocalDateTime.of(startDate, startTime);
-      LocalDateTime end = LocalDateTime.of(startDate, endTime);
+      LocalDateTime end = LocalDateTime.of(startDate.plusDays(1), endTime);
       List<Event> events = activeCalendar.getEventsInRange(start, end);
-      view.showEventsForDay(startDate,events);
-    } catch (IllegalArgumentException e) {
-      view.showError(e.getMessage());
-    }
-    catch (DateTimeException e) {
+      view.showEventsForDay(startDate, events);
+    } catch (DateTimeException e) {
       view.showError("Invalid date-time");
     }
   }
@@ -86,11 +83,13 @@ public class GuiControllerImpl implements Features {
   public void createEvent(String subject, String start, String end) {
     try {
       activeCalendar = model.getActiveCalendar();
-      activeCalendar.addEvent(createEvents(subject,start,end));
+      activeCalendar.addEvent(createEvents(subject, start, end));
       view.showMessage("Event Created successfully!" + System.lineSeparator());
       view.refreshEvents();
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
     }
   }
 
@@ -100,15 +99,18 @@ public class GuiControllerImpl implements Features {
     try {
       SingleCalModelInterface activeCalendar = model.getActiveCalendar();
       activeCalendar.addEventSeriesForCount(
-          createEvents(subject, start,end),
+          createEvents(subject, start, end),
           weekdays,
           Integer.parseInt(count));
       view.showMessage("Series Created successfully!" + System.lineSeparator());
       view.refreshEvents();
-    } catch (IllegalArgumentException | NullPointerException e) {
-      view.showError(e.getMessage());
-    }
-    catch (DateTimeException e) {
+    } catch (IllegalArgumentException e) {
+      if (e instanceof NumberFormatException) {
+        view.showError("Invalid count format");
+      } else {
+        view.showError(e.getMessage());
+      }
+    } catch (DateTimeException e) {
       view.showError("Invalid date-time");
     }
   }
@@ -120,7 +122,7 @@ public class GuiControllerImpl implements Features {
       LocalDate until = LocalDate.parse(untilDate);
       SingleCalModelInterface activeCalendar = model.getActiveCalendar();
       activeCalendar.addEventSeriesUntilDate(
-          createEvents(subject,start,end),
+          createEvents(subject, start, end),
           weekdays,
           until);
       view.showMessage("Series Created successfully!" + System.lineSeparator());
@@ -128,7 +130,7 @@ public class GuiControllerImpl implements Features {
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
     } catch (DateTimeException e) {
-      view.showError("Invalid Date");
+      view.showError("Invalid Date-time");
     }
   }
 
@@ -147,8 +149,7 @@ public class GuiControllerImpl implements Features {
       view.refreshEvents();
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
-    }
-    catch (DateTimeException e) {
+    } catch (DateTimeException e) {
       view.showError("Invalid date-time");
     }
   }
@@ -168,6 +169,8 @@ public class GuiControllerImpl implements Features {
       view.refreshEvents();
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
     }
 
   }
@@ -175,39 +178,16 @@ public class GuiControllerImpl implements Features {
 
   //********************** Helper methods *******************************//
 
-  /**
-   * Converts a date string from the parsed command into a default all-day
-   * event time range.
-   *
-   * @param date the  {@code date} argument.
-   * @return a list containing two {@link LocalDateTime} objects:
-   *        the start (08:00) and end (17:00) times of the event.
-   * @throws IllegalArgumentException if the provided date string is invalid
-   *                                  or cannot be parsed into a {@link LocalDate}.
-   */
-  private List<LocalDateTime> localeDateTimeConverter(String date)
-      throws IllegalArgumentException {
-    try {
-      LocalDate startDate = LocalDate.parse(date);
-      LocalTime startTime = LocalTime.parse("00:00");
-      LocalTime endTime = LocalTime.parse("00:00");
-      List<LocalDateTime> dateTime = new ArrayList<>();
-      dateTime.add(LocalDateTime.of(startDate, startTime));
-      dateTime.add(LocalDateTime.of(startDate.plusDays(1), endTime));
-      return dateTime;
-    } catch (DateTimeException e) {
-      throw new IllegalArgumentException("Invalid date-time");
-    }
-  }
 
   /**
    * Creates an {@link Event} object from the given parsed command.
+   *
    * @param subject the subject of the event.
-   * @param start the start date-time of the event.
-   * @param end the end date-time of the event.
+   * @param start   the start date-time of the event.
+   * @param end     the end date-time of the event.
    * @return the event object.
    * @throws IllegalArgumentException if the command arguments are missing required fields
-   *                                   or contain invalid data.
+   *                                  or contain invalid data.
    */
   private Event createEvents(String subject, String start, String end)
       throws IllegalArgumentException {

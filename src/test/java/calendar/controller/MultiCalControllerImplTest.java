@@ -43,7 +43,6 @@ public class MultiCalControllerImplTest {
   private String input = "";
   private CalControllerInterface controller;
   private File inputFile;
-  //private InputStream inStream;
   private Readable inStream = new InputStreamReader(System.in);
 
 
@@ -67,19 +66,16 @@ public class MultiCalControllerImplTest {
     @Override
     public void createCalendar(String calName, ZoneId timezone) throws IllegalArgumentException {
       if (calName == null || calName.isBlank()) {
-        log.append("Calendar name cannot be null or empty.")
-            .append(System.lineSeparator());
-        return;
+        throw new IllegalArgumentException("Calendar name cannot be null or empty."
+            + System.lineSeparator());
       }
       if (timezone == null) {
-        log.append("Timezone cannot be null.")
-            .append(System.lineSeparator());
-        return;
+        throw new IllegalArgumentException("Timezone cannot be null."
+            + System.lineSeparator());
       }
       if (calendars.containsKey(calName)) {
-        log.append("A calendar with the same name already exists.")
-            .append(System.lineSeparator());
-        return;
+        throw new IllegalArgumentException("A calendar with the same name already exists."
+            + System.lineSeparator());
       }
       log.append("calName: ").append(calName)
           .append(System.lineSeparator())
@@ -93,6 +89,13 @@ public class MultiCalControllerImplTest {
     @Override
     public void editCalendar(String calName, String propertyName, String newValue)
         throws IllegalArgumentException {
+      switch (propertyName.toLowerCase()) {
+        case "name":
+        case "timezone":
+          break;
+        default:
+          throw new IllegalArgumentException("Invalid property.");
+      }
       log.append("calName: ").append(calName)
           .append(System.lineSeparator())
           .append("propertyName: ").append(propertyName)
@@ -104,6 +107,7 @@ public class MultiCalControllerImplTest {
     @Override
     public void useCalendar(String calName) throws IllegalArgumentException {
       setActiveCalendar(calName);
+      activeCalendarName = calName;
       log.append("calToUse: ").append(calName)
           .append(System.lineSeparator())
           .append("activeCalendar: ")
@@ -114,18 +118,21 @@ public class MultiCalControllerImplTest {
 
     @Override
     public SingleCalModelInterface getActiveCalendar() {
-      return activeCalendar;
+      return calendars.get(activeCalendarName);
     }
 
     @Override
     public List<String> listCalendars() {
-      return List.of();
+      return List.of(calendars.keySet().toArray(new String[0]));
     }
 
     @Override
     public void copyEvent(String eventName, LocalDateTime sourceStartTime, String targetCalendar,
                           LocalDateTime targetStartTime)
         throws IllegalArgumentException, IllegalStateException {
+      if (activeCalendar == null) {
+        throw new IllegalStateException("No active calendar selected.");
+      }
       log.append("eventName: ").append(eventName)
           .append(System.lineSeparator())
           .append("sourceStartTime: ").append(sourceStartTime)
@@ -142,6 +149,9 @@ public class MultiCalControllerImplTest {
     public void copyEventsBetween(LocalDate startDate, LocalDate endDate, String targetCalendar,
                                   LocalDate targetStartDate)
         throws IllegalArgumentException, IllegalStateException {
+      if (activeCalendar == null) {
+        throw new IllegalStateException("No active calendar selected.");
+      }
       log.append("startDate: ")
           .append(startDate.toString())
           .append(System.lineSeparator())
@@ -159,11 +169,11 @@ public class MultiCalControllerImplTest {
 
     private void setActiveCalendar(String calendarName) {
       if (calendarName == null || calendarName.isBlank()) {
-        log.append("Calendar name cannot be null or empty.");
+        throw new IllegalArgumentException("Calendar name cannot be null or empty.");
       }
       SingleCalModelInterface calendar = calendars.get(calendarName);
       if (calendar == null) {
-        log.append("Calendar with this name does not exist.");
+        throw new IllegalArgumentException("Calendar with this name does not exist.");
       }
       this.activeCalendar = calendar;
     }
@@ -232,7 +242,6 @@ public class MultiCalControllerImplTest {
   public void testMultiCalHeadlessMode() {
     inputFile = new File("src/test/java/calendar/controller/MultiCalCommands.txt");
     try {
-      //inStream = new FileInputStream(inputFile);
       String fileContents = new String(Files.readAllBytes(Paths.get(inputFile.toURI())));
       inStream = new StringReader(fileContents);
       controller = new CalControllerImpl(mockModel, mockView, inStream);
@@ -273,7 +282,6 @@ public class MultiCalControllerImplTest {
   public void testMultiCalHeadlessErrors() {
     inputFile = new File("src/test/java/calendar/controller/MultiCalInvalidCommands.txt");
     try {
-      //inStream = new FileInputStream(inputFile);
       String fileContents = new String(Files.readAllBytes(Paths.get(inputFile.toURI())));
       inStream = new StringReader(fileContents);
       controller = new CalControllerImpl(mockModel, mockView, inStream);
@@ -304,7 +312,6 @@ public class MultiCalControllerImplTest {
   public void testCreateCalendar() throws IOException {
     input = "create calendar --name Work --timezone America/New_York"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -314,10 +321,21 @@ public class MultiCalControllerImplTest {
   }
 
   @Test
+  public void testCreateCalendarDuplicateException() throws IOException {
+    mockModel.createCalendar("Work", ZoneId.of("America/New_York"));
+    input = "create calendar --name Work --timezone America/New_York"
+        + System.lineSeparator() + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(mockModel, mockView, inStream);
+    controller.runInteractive();
+    String output = ((MockView) mockView).getLogs().trim();
+    assertTrue(output.contains("A calendar with the same name already exists."));
+  }
+
+  @Test
   public void testCreateCalendarIllegalArgs() throws IOException {
     input = "create calendar --name Work"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -331,7 +349,6 @@ public class MultiCalControllerImplTest {
   public void testCreateCalendarInvalidZone() throws IOException {
     input = "create calendar --name Personal --timezone Europe@London"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -342,10 +359,20 @@ public class MultiCalControllerImplTest {
   }
 
   @Test
+  public void testCreateCalendarZoneException() throws IOException {
+    input = "create calendar --name Personal --timezone Invalid/London"
+        + System.lineSeparator() + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(mockModel, mockView, inStream);
+    controller.runInteractive();
+    String output = ((MockView) mockView).getLogs().trim();
+    assertTrue(output.contains("Invalid Zone"));
+  }
+
+  @Test
   public void testEditCalendarTimezone() throws IOException {
     input = "edit calendar --name Work --property timezone America/Chicago"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -364,7 +391,6 @@ public class MultiCalControllerImplTest {
   public void testEditCalendarIllegalArgs() throws IOException {
     input = "edit calendar  --property timezone America/Chicago"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -380,7 +406,6 @@ public class MultiCalControllerImplTest {
   public void testEditCalendarInvalidZone() throws IOException {
     input = "edit calendar --name Work --property timezone America@Chicago"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -391,11 +416,22 @@ public class MultiCalControllerImplTest {
   }
 
   @Test
+  public void testEditCalendarNullProp() throws IOException {
+    input = "edit calendar --name Work --property location India/Delhi "
+        + System.lineSeparator() + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(mockModel, mockView, inStream);
+    controller.runInteractive();
+    String output = ((MockView) mockView).getLogs().trim();
+    String expected = "Invalid property.";
+    assertTrue(output.contains(expected));
+  }
+
+  @Test
   public void testUseCalendarTimezone() throws IOException {
     input = "create calendar --name Birthday --timezone Australia/Sydney"
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -416,7 +452,6 @@ public class MultiCalControllerImplTest {
         + System.lineSeparator() + "use calendar --name Birthday"
         + System.lineSeparator() + "exit";
     inStream = new StringReader(input);
-    //inStream = new ByteArrayInputStream(input.getBytes());
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
     String output = ((MockView) mockView).getLogs().trim();
@@ -436,7 +471,6 @@ public class MultiCalControllerImplTest {
         + "on 2024-04-10T09:30 --target Personal to 2024-04-17T09:30"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -453,6 +487,22 @@ public class MultiCalControllerImplTest {
   }
 
   @Test
+  public void testCopyEventIllegalState() throws IOException {
+    input = "copy event \"Doctor Appointment\" "
+        + "on 2024-04-10T09:30 --target Personal to 2024-04-17T09:30"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(mockModel, mockView, inStream);
+    controller.runInteractive();
+    String viewLogs = ((MockView) mockView).getLogs();
+
+    assertTrue("Expected successfully to appear in log",
+        viewLogs.contains("No active calendar selected."));
+  }
+
+
+  @Test
   public void testCopyEventInvalidDateTime() throws IOException {
     input = "create calendar --name Work --timezone Australia/Sydney"
         + System.lineSeparator()
@@ -462,7 +512,6 @@ public class MultiCalControllerImplTest {
         + "on 2024-04-18T09:30 --target Personal to 2024-4-17T09:30"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -482,7 +531,6 @@ public class MultiCalControllerImplTest {
         + "on 2024-04-18T09:30 --target Personal to 2024-24-17T09:30"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -500,7 +548,6 @@ public class MultiCalControllerImplTest {
         + "copy events on 2024-03-15 --target Work to 2024-03-22"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -516,6 +563,19 @@ public class MultiCalControllerImplTest {
   }
 
   @Test
+  public void testCopyEventsIllegalState() throws IOException {
+    input = "copy events on 2024-03-15 --target Work to 2024-03-22"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(mockModel, mockView, inStream);
+    controller.runInteractive();
+    String viewLogs = ((MockView) mockView).getLogs();
+    assertTrue("Expected successfully to appear in log",
+        viewLogs.contains("No active calendar selected."));
+  }
+
+  @Test
   public void testCopyEventsInvalidDateTime() throws IOException {
     input = "create calendar --name Work --timezone Australia/Sydney"
         + System.lineSeparator()
@@ -524,7 +584,6 @@ public class MultiCalControllerImplTest {
         + "copy events on 2024-3-21 --target Work to 2024-03-22"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -543,7 +602,6 @@ public class MultiCalControllerImplTest {
         + "copy events on 2024-22-21 --target Work to 2024-03-22"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -561,7 +619,6 @@ public class MultiCalControllerImplTest {
         + "copy events between 2024-03-01 and 2024-03-07 --target Work to 2024-03-15"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -586,7 +643,6 @@ public class MultiCalControllerImplTest {
         + "copy events between 2024-3-01 and 2024-03-07 --target Work to 2024-03-15"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -605,7 +661,6 @@ public class MultiCalControllerImplTest {
         + "copy events between 2024-20-01 and 2024-03-07 --target Work to 2024-03-15"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(mockModel, mockView, inStream);
     controller.runInteractive();
@@ -657,7 +712,6 @@ public class MultiCalControllerImplTest {
         + "export cal data_export_sample.csv"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(model, mockView, inStream);
     controller.runInteractive();
@@ -685,7 +739,6 @@ public class MultiCalControllerImplTest {
         + "export cal data_export_sample.csv"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(model, mockView, inStream);
     controller.runInteractive();
@@ -724,7 +777,6 @@ public class MultiCalControllerImplTest {
         + "export cal data_export_sample.csv"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(model, mockView, inStream);
     controller.runInteractive();
@@ -753,7 +805,6 @@ public class MultiCalControllerImplTest {
         + "export cal abc.pdf"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(model, mockView, inStream);
     controller.runInteractive();
@@ -786,7 +837,6 @@ public class MultiCalControllerImplTest {
           + "export cal " + invalidCsvFile
           + System.lineSeparator()
           + "exit";
-      //inStream = new ByteArrayInputStream(input.getBytes());
       inStream = new StringReader(input);
       controller = new CalControllerImpl(model, mockView, inStream);
       controller.runInteractive();
@@ -844,7 +894,6 @@ public class MultiCalControllerImplTest {
         + "export cal data_export_sample.ics"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(model, mockView, inStream);
     controller.runInteractive();
@@ -873,8 +922,6 @@ public class MultiCalControllerImplTest {
         + "export cal data_export_sample.ics"
         + System.lineSeparator()
         + "exit";
-
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(model, mockView, inStream);
     controller.runInteractive();
@@ -935,7 +982,6 @@ public class MultiCalControllerImplTest {
         + "export cal data_export_sample.ics"
         + System.lineSeparator()
         + "exit";
-    //inStream = new ByteArrayInputStream(input.getBytes());
     inStream = new StringReader(input);
     controller = new CalControllerImpl(model, mockView, inStream);
     controller.runInteractive();
@@ -998,7 +1044,6 @@ public class MultiCalControllerImplTest {
           + "export cal " + invalidIcsFile
           + System.lineSeparator()
           + "exit";
-      //inStream = new ByteArrayInputStream(input.getBytes());
       inStream = new StringReader(input);
       controller = new CalControllerImpl(model, mockView, inStream);
       controller.runInteractive();

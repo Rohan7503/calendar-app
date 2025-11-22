@@ -65,7 +65,8 @@ public class Export {
     }
     if (filename.endsWith(".csv")) {
       exportToCsv(events, filename);
-    } else if (filename.endsWith(".ics")) {
+    }
+    if (filename.endsWith(".ics")) {
       exportToIcal(events, filename);
     }
   }

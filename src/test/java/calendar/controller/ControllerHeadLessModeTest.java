@@ -37,7 +37,6 @@ public class ControllerHeadLessModeTest extends CalControllerImplTest {
   private File inputFile;
   private File outputFile;
   private OutputStream outStream;
-  //private InputStream inStream;
   private Readable inStream = new InputStreamReader(System.in);
 
   @Test
@@ -47,7 +46,6 @@ public class ControllerHeadLessModeTest extends CalControllerImplTest {
       outputFile = new File("src/test/java/calendar/controller/output.txt");
 
 
-      //inStream = new FileInputStream(inputFile);
       String fileContents = new String(Files.readAllBytes(Paths.get(inputFile.toURI())));
       inStream = new StringReader(fileContents);
       calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -143,7 +141,6 @@ public class ControllerHeadLessModeTest extends CalControllerImplTest {
     try {
       inputFile = new File("src/test/java/calendar/controller/InvalidInputs.txt");
       outputFile = new File("src/test/java/calendar/controller/output.txt");
-      //inStream = new FileInputStream(inputFile);
       String fileContents = new String(Files.readAllBytes(Paths.get(inputFile.toURI())));
       inStream = new StringReader(fileContents);
       outStream = new FileOutputStream(outputFile);
@@ -201,7 +198,6 @@ public class ControllerHeadLessModeTest extends CalControllerImplTest {
   public void testHeadlessModeViewExitExportCommandDisplay() {
     try {
       inputFile = new File("src/test/java/calendar/controller/ValidInputs.txt");
-      //inStream = new FileInputStream(inputFile);
       String fileContents = new String(Files.readAllBytes(Paths.get(inputFile.toURI())));
       inStream = new StringReader(fileContents);
       calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -222,7 +218,6 @@ public class ControllerHeadLessModeTest extends CalControllerImplTest {
   public void testHeadlessModeViewErrorCommandDisplay() {
     try {
       inputFile = new File("src/test/java/calendar/controller/InvalidInputs.txt");
-      //inStream = new FileInputStream(inputFile);
       String fileContents = new String(Files.readAllBytes(Paths.get(inputFile.toURI())));
       inStream = new StringReader(fileContents);
       calController = new CalControllerImpl(mockModel, mockView, inStream);
@@ -249,7 +244,6 @@ public class ControllerHeadLessModeTest extends CalControllerImplTest {
         ""
     );
 
-    //inStream = new ByteArrayInputStream(userInput.getBytes());
     inStream = new StringReader(userInput);
     outStream = new ByteArrayOutputStream();
 
