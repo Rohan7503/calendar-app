@@ -40,13 +40,6 @@ public class CalendarTest {
     System.setIn(originalIn);
   }
 
-  //  @Test
-  //  public void testMainGui() {
-  //    CalendarRunner.main(new String[] {});
-  //    String output = outContent.toString().split(System.lineSeparator())[0];
-  //    assertEquals("Starting the GUI...", output);
-  //  }
-
   @Test
   public void testMainShowsErrorWhenHeadlessWithoutFile() {
     CalendarRunner.main(new String[] {"--mode", "headless"});
