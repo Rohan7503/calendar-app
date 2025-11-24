@@ -556,15 +556,4 @@ public class IntegratedTest {
     assertEquals(expected.toString(), trimmedOutput);
   }
 
-  //ToDo :
-  // An event in the series already exists,
-  // End date cannot be before the prototype's start date" . - addSeriesCount,addSeriesUntil
-  // Event already exists - addEvent.
-  // Start date/time cannot be after end date/time. - getEventsInRange
-  // Invalid format for weekdays. - parseWeekdays
-  // No matching event found, Multiple matching events found. - find unique event
-  // Duplicate event found. Edit aborted. - applyEdit
-  // A calendar with this name already exists. - editCalendar
-  // End date cannot be before start date. - calendar function
-  // Duplicate event in target calendar. Copy aborted. - duplicateCalendar
 }

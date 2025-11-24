@@ -417,14 +417,6 @@ public class GuiControllerImplTest {
     guiController = new GuiControllerImpl(model, gui);
   }
 
-  //  @Test
-  //  public void testGuiMode(){
-  //    calController = new CalControllerImpl(model,calView,null);
-  //    calController.runGui();
-  //    viewLogs = ((MockView)gui).getLogs();
-  //    //assertTrue(viewLogs.contains("showing calendars "));
-  //
-  //  }
 
   @Test
   public void testCreateCalendarCallback() {
