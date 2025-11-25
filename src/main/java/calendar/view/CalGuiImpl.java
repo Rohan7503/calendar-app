@@ -136,7 +136,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
       JPanel eventPanel = new JPanel();
       eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.X_AXIS));
 
-      JLabel eventLabel = new JLabel(String.format("%s | %s → %s", e.getSubject(),
+      JLabel eventLabel = new JLabel(String.format("%s | %s to %s", e.getSubject(),
           e.getStart().format(dateFormatter), e.getEnd().format(dateFormatter)));
       eventLabel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
 
