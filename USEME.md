@@ -22,7 +22,7 @@ java -jar <JAR path>.jar
 **Instructions on how to use the GUI are [here](#how-to-use-the-gui)**
 
 
-### 2. Interactive Mode (Default)
+### 2. Interactive Mode
 The interactive mode allows you to enter commands manually through the terminal.
 
 **Command:**
