@@ -1,114 +1,252 @@
-# Overview
+# 1 Introduction
 
-In this iteration of this project, you will build a view
-for the calendar application, featuring a graphical user interface.
-This will allow a user to interactively create,edit, and view events in
-a digital calendar. The result of this iteration will be a calendar that
-a user can interact with in a text-based interface, a GUI, as well as use scripting in headless mode.
+This project implements a virtual calendar application inspired by widely used tools such as Google Calendar and Apple iCalendar. The goal is to design and build a flexible, extensible system that supports creating, editing, and viewing calendar events through multiple interaction modes.
 
-# 1 Graphical View
+The application was developed incrementally, with each iteration expanding the feature set while preserving a scalable and modular design. The initial implementation focuses on core calendar functionality and user interaction through a command-line interface. Subsequent iterations extend the system to support richer interaction models, including a graphical user interface (GUI) and headless scripting support.
 
-## 1.1 General Constraints
+The final version of the application allows users to:
+- Interactively create, edit, and view calendar events
+- Use the application via a text-based interface or a GUI
+- Run the calendar in headless mode for scripting and automation
 
-1. You must use the Java Swing library to build the user interface of this application. To this end, you can use the examples discussed in the view module and any class in the official Java Swing library. You are not allowed to use any component or class that is not part of the JDK. 
+# 2 Design & Architecture
 
-2. The GUI should, at a minimum, support a *month view* of a calendar. A month view shows all the days of the current month. A user can navigate to another month in the future or in the past. You are free to add more views (e.g., weekly view, days view, etc.).
+The application is designed around a clear separation of concerns, following the Model–View–Controller (MVC) architectural pattern. The core calendar logic is encapsulated within the model and is fully decoupled from input/output mechanisms, allowing the system to support multiple interaction modes with minimal changes to the underlying implementation.
 
-3. The GUI must expose features listed and described in the next section.
+## 2.1 Core Model Design
 
-4. The GUI should have support for multiple calendars in any timezone chosen by the user.
+The model represents the fundamental calendar concepts, including calendars and calendar events, using well-defined abstractions and concrete data types. Date and time handling relies on appropriate standard library types to ensure correctness and clarity, while maintaining flexibility for future extensions.
 
-5. You are expected to handle invalid user input via the GUI gracefully. Graceful error handling means that you must detect the cause of the error and inform the user with a useful message that does not leak implementation details but lets the user know how to fix the error.
+The model is intentionally independent of any user interface or I/O concerns. No GUI- or view-specific classes are referenced within the model layer, enabling the same core logic to be reused across command-line, GUI, and headless execution modes.
 
-6. The layout of the UI should be reasonable. Things should be in proper proportion, and laid out in a reasonable manner. **Buttons/text fields/labels that are oversized, or haphazardly arranged, even if functional, will result in a point deduction.**
+## 2.2 Extensibility and Abstraction
 
-7. Each user interaction or user input must be reasonably user-friendly  (e.g. making the user type something when a less error-prone method is  possible is not good UI design). We do not expect snazzy, sophisticated  user-friendly programs. Our standard is: can a user unfamiliar with your code and technical documentation operate the program correctly **without reading your code and technical documentation?**
+The design emphasizes forward compatibility. Abstractions are chosen to accommodate evolving requirements without requiring significant refactoring. New features are incorporated incrementally, with careful consideration given to minimizing disruption to existing components.
 
-8. Keep in mind that this is a graphical user interface for your program.  It is not a graphical way to use the same interaction as the text mode. The expectations of the user, and what the user is expected to enter, are not the same as when specifying script commands!
+Key design goals include:
+- Supporting multiple views without modifying the model
+- Allowing different controllers for distinct interaction styles (interactive, headless, GUI)
+- Ensuring new functionality can be added through extension rather than modification
 
-## 1.2 Expected Feature Set
+## 2.3 MVC Adherence
 
-The following features must be usable via your graphical user interface.
+The responsibilities of each layer are clearly defined:
+- Model: Encapsulates core calendar data and business logic
+- View: Handles presentation and user interaction
+- Controller: Coordinates between user actions and model updates
 
-1. A user should be able to create a new calendar for a particular timezone.
+Interactions between the view and controller are formalized through interfaces, allowing views to be swapped or extended with minimal coupling. The design continuously evaluates whether individual components can be changed independently, reinforcing proper MVC separation.
 
-2. A user should be able to select a calendar and create, edit, view events for the selected calendar.
+## 2.4 Design Principles
 
-3. A user should know which calendar they are on when interacting with the GUI. The way you distinguish a calendar is upto you. One example would be to color code the different calendars.
+The system design is guided by the SOLID principles, with an emphasis on:
+- Single Responsibility: Each class has a clearly defined purpose
+- Open/Closed Principle: Behavior is extended through abstraction rather than modification
+- Interface Segregation: Interfaces are kept focused and minimal
+- Dependency Inversion: High-level components depend on abstractions, not concrete implementations
+- Design changes introduced during feature expansion are documented and justified to ensure clarity and maintainability.
+  
+## 2.5 Testing Strategy
 
-4. A user should not be forced to create a new calendar. Instead, the GUI should allow a user to work with a default calendar in the user's current timezone based on their system setting.
+- Unit tests implemented using **JUnit** to verify model and controller logic
+- **JaCoCo** used to measure code coverage and ensure comprehensive testing
+- Mutation testing performed with **PIT** to validate test effectiveness
 
-5. A user should be able to select a specific day of a month and view all events scheduled on that day in the calendar's timezone.
+## 2.6 Packaging and Execution
 
-6. A user should be able to create a new event on a selected day of a month. The event can be a single or recurring event. For recurring events, a user should be able to specify the weekdays on which the event will repeat and the frequency in terms of number of occurrences or until an end date.
+The application is packaged as an executable JAR, allowing users to run the system from the command line with configurable arguments. File paths are handled in a platform-independent manner to ensure portability across environments.
 
-7. A user should be able to select a specific day of a month and edit events.
+# 3 Feature Set
 
-The user should be able to identify a single event and edit it. The user should also be able to identify multiple events with the same name, possibly from a user-specific point in time, and edit them together.
+The table below lists the available features at a high-level:
+
+## Features
+
+| Feature                                                                           | Supported in GUI | Supported in Headless | Supported in Interactive |  
+|-----------------------------------------------------------------------------------|------------------|-----------------------|--------------------------|
+| **1. Displaying calendar list**                                                   | Yes              | No                    | No                       |
+| **2. Creating a calendar**                                                        | Yes              | Yes                   | Yes                      |
+| **3. Selecting a calendar / switching between calendars**                         | Yes              | Yes                   | Yes                      |
+| **4. Highlighting selected calendar**                                             | Yes              | No                    | No                       |
+| **5. Month grid (clickable days)**                                                | Yes              | No                    | No                       |
+| **6. Showing events for selected day**                                            | Yes              | Yes                   | Yes                      |
+| **7. Showing events for range of days**                                           | No               | Yes                   | Yes                      |
+| **8. Creating an event**                                                          | Yes              | Yes                   | Yes                      |
+| **9. Creating an event series (count)**                                           | Yes              | Yes                   | Yes                      |
+| **10. Creating an event series (until date)**                                     | Yes              | Yes                   | Yes                      |
+| **11. Editing a single event**                                                    | Yes              | Yes                   | Yes                      |
+| **12. Editing events of a series after this event**                               | Yes              | Yes                   | Yes                      |
+| **13. Editing an entire event series**                                            | Yes              | Yes                   | Yes                      |
+| **14. Informational messages (creation / edition / etc.)**                        | Yes              | Yes                   | Yes                      |
+| **15. Error messages**                                                            | Yes              | Yes                   | Yes                      |
+| **16. Default calendar creation on application start**                            | Yes              | No                    | No                       |
+| **17. Exporting events to a .csv file**                                           | No               | Yes                   | Yes                      |
+| **18. Exporting events to a .ics (iCal) file**                                    | No               | Yes                   | Yes                      |
+| **19. Copying a single event from one calendar to another**                       | No               | Yes                   | Yes                      |
+| **20. Copying events of a single day from one calendar to another**               | No               | Yes                   | Yes                      |
+| **21. Copying events within a range of days from one calendar to another**        | No               | Yes                   | Yes                      |
+| **22. User status on a given day (busy or available)**                            | No               | Yes                   | Yes                      |
+| **23. Converting event times to the timezone of the calendar they are a part of** | Yes              | Yes                   | Yes                      |
+| **24. Quiting the application**                                                   | Yes              | Yes                   | Yes                      |
 
 
-## 1.3 Design Considerations
 
-Carefully design the interaction between a view and a controller,
-and formalize the interactions with view and controller interfaces.
-You may design a single controller that manages the program in
-interactive, headless and GUI modes. Different controllers for different views are also possible if the views are very different from each other.
-However, be mindful of the MVC principles and separation between  the model, view and controller. When designing, always ask: "can I change one part with no/minimal changes to the others?"
+The application is developed following the feature specifications described below for the text-based interface. Not all the features are exposed to the user through the GUI
 
-## 1.4 Testing
+## 3.1 Calendar-Level Operations
 
-Think carefully about which parts of the program require testing. For example, you are not expected to test whether a particular button click produces the desired result. In that sense, testing the actual GUI is optional. However, you should test whether the controller does what it is supposed to in reaction to this happening.
+### Creating Calendars
+- `create calendar --name <calName> --timezone area/location`
 
-# 2 Program Execution
+This command will create a new calendar with a unique name
+and timezone as specified by the user. The expected timezone
+format is the [IANA Time Zone Database format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). In this format the timezone is specified as "area/location". Few examples include "America/New_York", "Europe/Paris", "Asia/Kolkata", "Australia/Sydney", "Africa/Cairo", etc. The command is invalid if the user provides a non-unique calendar name or an unsupported timezone.
 
-## 2.1 Creating a JAR File
+### Editing Calendars
+- `edit calendar --name <name-of-calendar> --property <property-name> <new-property-value>`
 
-A user should be able to run your application using a JAR file. To create a JAR file run the command ./gradlew jar. This will create a JAR file in the build/libs directory. You can run the jar using the command java -jar build/libs/JARNAME.jar. You can provide arguments after the jar file path.
+This command is used to change/modify an existing property (`name` or `timezone`) of the
+calendar. The command is invalid if the property being changed is absent
+or the value is invalid in the context of the property.
 
-You should assume that the user will run your program from this project's root. You must ensure that file paths that your program relies on are platform independent.
+### Using a Calendar
+- `use calendar --name <name-of-calendar>`
 
-## 2.2 Command-line arguments
+A user can create/edit/print/export events in the context of a
+calendar. They can use this command to set the calendar context.
+Note this means that the commands specific to a single calendar (listed below) only
+make sense when a calendar is in use (i.e. some calendar must be in use for them to work). Otherwise, they are invalid.
 
-Your program (from IntelliJ or the JAR file) should accept command-line inputs. Three command-line inputs are valid:
+### Copying Events Between Calendars
+- `copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString>`
 
-* `java -jar JARNAME.jar --mode headless path-of-script-file`: when invoked in this manner the program should open the script file, execute it and then exit. Invalid commands should be handled gracefully with appropriate error messages. This is how the program worked in the previous iteration.
+The command is used to copy a specific event with the given name and
+start date/time from the current calendar to the target calendar to start at the specified date/time. The "to" date/time is assumed to be specified in the timezone of the target calendar.
 
-* `java -jar JARNAME.jar --mode interactive`: when invoked in this manner the program should open in an interactive text mode, allowing the user to type the script and execute it one line at a time. This is how the program worked in the previous iteration.
+- `copy events on <dateString> --target <calendarName> to <dateString>  `
 
-* `java -jar JARNAME.jar`: when invoked in this manner the program should open the graphical user interface. This is what will happen if you simply double-click on the jar file.
+This command has the same behavior as the `copy event` above, except it
+copies all events scheduled on that day. The times physically remain the same, except they are converted to the timezone of the target calendar (e.g. an event that starts at 2pm in the source calendar which is in EST would start at 11am in the destination calendar which is in PST).
 
-Any other command-line arguments are invalid: in these cases the program should display an error message suitably and quit.
+- `copy events between <dateString> and <dateString> --target <calendarName> to <dateString>  `
 
-# 3 What to submit
+The command has the same behavior as the other copy commands, except it copies all events scheduled in the specified date interval (i.e. overlaps with the specified interval). The date string in the target calendar corresponds to the start of the interval. The endpoint dates of the interval are inclusive.
 
-- Submit a res/ folder with the following:
-  - A screenshot showing your GUI. 
-  - A `Misc.md` file with the following information:
-    - `A list of changes to the design of your program, along with a brief justification of each. **Describing changes only in paragraph form will result in a point deduction.**
-    - Which features work and which do not. 
-    - Anything else you need us to know when we grade.
-  - A txt file, commands.txt, with the list of valid commands.
-  - A txt file, invalid.txt with a list of commands where at least one command is invalid.
-- A USEME.md file that contains:
-  - Instructions to run your program in different modes using examples.
-  - a bullet-point list of how to use your GUI to use each operation supported by your program. Screenshots would be helpful, but not necessary.
-- The main method must be in the class 'src/main/java/CalendarRunner.java'.
-- Complete the [anonymous peer evaluation survey](https://forms.gle/11qoosf7ukmVFWuT9). You do not need to take the survey if you are working alone.
+In both the `copy events` commands, if an event series partly overlaps with the specified range, only those events in the series that overlap with the specified range should be copied, and their status as part of a series should be retained in the destination calendar.
 
-# Grading Criteria
+### Exiting the Application
+- `exit`
 
-1. The completeness, layout, and behavior of your GUI.
+Stops listening for further commands.
 
-2. Whether your design aligns with MVC and SOLID principles.
+## 3.2 Event-Level Operations
 
-3. Whether you have addressed issues in the previous version.
+### Creating Events
 
-4. Well-structured and clean code with relevant documentation.
+- `create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString>`
 
-5. Avoid code smells wherever relevant.
+Creates a single event in the calendar. Note \<dateString\> is a string of the form "YYYY-MM-DD" \<timeString\> is a string of the form "hh:mm" and \<dateStringTtimeString\> is a string of the form "YYYY-MM-DDThh::mm".
 
-6. Completeness and correctness of your tests as evidenced by running them and coverage metrics for the controller and model.
 
-7. Proper access modifiers.
+- `create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> for <N> times`
 
-8. Expected formatting style.
+Creates an event series that repeats N times on specific weekdays. Note \<weekdays\> is a
+sequence of characters where character denotes a day of the week, e.g., MRU.
+'M' is Monday, 'T' is Tuesday, 'W' is Wednesday, 'R' is Thursday, 'F' is Friday, 'S' is Saturday, and 'U' is Sunday.
+
+- `create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> until <dateString>`
+
+Creates an event series until a specific date (inclusive).
+
+- `create event <eventSubject> on <dateString>`
+
+Creates a single all day event.
+
+- `create event <eventSubject> on <dateString> repeats <weekdays> for <N> times`
+
+Creates a series of all day events that repeats N times on specific weekdays.
+
+- `create event <eventSubject> on <dateString> repeats <weekdays> until <dateString>`
+
+Creates a series of all day events until a specific date (inclusive).
+
+For all of the above, the subject may have multiple words. Only in this case, the subject must be enclosed in double quotes.
+
+### Editing Events
+
+- `edit event <property> <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> with <NewPropertyValue>`
+
+Identify the event that has the given subject and starts at the given date and time, and edit its property. This results in change in property for a single instance (irrespective of whether the identified event is single or part of a series).
+
+- `edit events <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>`
+
+Identify the event(s) that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series that start at or after the given date and time should be changed. If this event is not part of a series then this has the same effect as the command above.
+
+- `edit series <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>`
+
+Identify the event that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series should be changed. If this event is not part of a series then this has the same effect as the first edit command.
+
+For all these queries the `<property>` field may be one of the following: *subject*, *start*, *end*, *description*, *location*, *status*. The format of the new property values are `string`, `dateStringTtimeString`, `dateStringTtimeString`, `string`, `string` and `string` respectively.
+
+If an edition will result in any violations of the rule that two events cannot have the same subject, start and end date, then the edition should not occur. A useful error message may be printed in this case.
+
+### Queries
+
+- `print events on <dateString>`
+
+Prints a bulleted list of all events on that day along with their start and end time and location (if any).
+
+- `print events from <dateStringTtimeString> to <dateStringTtimeString>`
+
+Prints a bulleted list of all events that partly or completely lie in the given interval. Each event should be listed in a single line and must be in the following format: `<subject> starting on <startdate> at <starttime>, ending on <enddate> at <endtime>` including their start and end times and location (if any).
+
+### Miscellaneous
+
+- `export cal fileName.csv`
+
+Exports the calendar as a csv file conforming to the specs listed [here](https://support.google.com/calendar/answer/37118?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ccreate-or-edit-a-csv-file) that can be imported to the Google Calendar app. The command should also print the absolute path of the generated csv file.
+
+- `export cal fileName.ics`
+
+Exports the calendar as an iCal file conforming to the specs listed [here](https://support.google.com/calendar/answer/37118?hl=en&co=GENIE.Platform%3DDesktop&oco=1#zippy=%2Ccreate-or-edit-an-icalendar-file) that can be imported to the Google Calendar app. The command should also print the absolute path of the generated ics file.
+
+- `show status on <dateStringTtimeString>`
+
+Prints busy status if the user has events scheduled on a given day and time, otherwise, available.
+
+
+# 4 Resources & Artifacts
+
+This repository includes additional design and usage artifacts in the `res/`
+directory, including:
+- Class diagrams
+- Sample input files for headless execution
+- Screenshots of the graphical user interface
+
+# 5 Project Evolution
+
+**Iteration 1**
+- Core system setup
+- Implemented event-level operations
+- Developed CLI and Headless modes
+
+**Iteration 2**
+- Extended system to support calendar-level operations
+- Refactored design to improve modularity
+
+**Iteration 3**
+- Developed the GUI
+- Final cleanup and documentation
+
+# 6 How to Run
+```
+1. Clone the repository
+2. Follow the instructions in USEME.md
+```
+
+# 7 Acknowledgement
+
+This project was developed as a two-person team as part of the Programming
+Design Paradigms course at Northeastern University, instructed by Prof. Amit
+Shesh. The implementation in this repository represents the final consolidated
+version of the project.

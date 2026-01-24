@@ -42,10 +42,9 @@ java -jar <JAR path>.jar --mode headless <filename.txt>
 ```
 Example:
 ```bash
-java -jar <JAR path>.jar --mode headless res/commands.txt
+java -jar <JAR path>.jar --mode headless res/sample_commands.txt
 ```
-Here, commands.txt should contain valid commands, one per line.  
-The application will execute them sequentially and print results to the console.
+Here, `sample_commands.txt` should contain valid commands, one per line. The application will execute them sequentially and print the results to the console.
 
 ---
 ### Example Runs:
@@ -63,9 +62,9 @@ Starts in interactive mode
 
 **Example 3:**
 ```bash
-java -jar build/libs/calendar-1.0.jar --mode headless res/commands.txt
+java -jar build/libs/calendar-1.0.jar --mode headless res/sample_commands.txt
 ```
-Executes all commands in `inputCommands.txt` and displays the output in the terminal.  
+Executes all commands in `sample_ommands.txt` and displays the output in the terminal.  
 
 ---
 
