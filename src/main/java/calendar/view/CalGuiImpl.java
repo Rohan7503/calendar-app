@@ -31,6 +31,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -56,6 +59,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   private final JButton createSeriesUntilButton;
   private final JButton editEventsButton;
   private final JButton deleteEventsButton;
+  private final List<String> availableCalendars;
   private LocalDate selectedDate;
   private YearMonth displayedMonth;
 
@@ -77,8 +81,10 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     createSeriesUntilButton = new JButton("Create Series (Until Date)");
     editEventsButton = new JButton("Edit Multiple Events");
     deleteEventsButton = new JButton("Delete Events");
+    availableCalendars = new ArrayList<>();
 
     setLayout(new BorderLayout());
+    setJMenuBar(buildToolsMenuBar());
     addTopActionButtons(BorderLayout.NORTH);
     createScrollablePanel("Calendars", calendarListPanel, BorderLayout.WEST);
     createScrollablePanel("Day Events", dayEventsPanel, BorderLayout.EAST);
@@ -107,6 +113,8 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   @Override
   public void showCalendars(List<String> calendarNames, String activeCalendar) {
     calendarListPanel.removeAll();
+    this.availableCalendars.clear();
+    this.availableCalendars.addAll(calendarNames);
 
     for (String name : calendarNames) {
       JButton btn = new JButton(name);
@@ -196,6 +204,42 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     buttonPanel.add(editEventsButton);
     buttonPanel.add(deleteEventsButton);
     this.add(buttonPanel, position);
+  }
+
+  /**
+   * Builds the application menu bar that exposes the calendar tools which were previously only
+   * available in the text modes: editing a calendar, exporting, copying events, checking status,
+   * and viewing events across a date range.
+   *
+   * @return the populated menu bar
+   */
+  private JMenuBar buildToolsMenuBar() {
+    final JMenuBar menuBar = new JMenuBar();
+    final JMenu tools = new JMenu("Tools");
+
+    JMenuItem editCalendar = new JMenuItem("Edit Calendar...");
+    editCalendar.addActionListener(e -> openEditCalendarDialog());
+    JMenuItem exportCsv = new JMenuItem("Export to CSV...");
+    exportCsv.addActionListener(e -> openExportDialog("csv"));
+    JMenuItem exportIcs = new JMenuItem("Export to ICS...");
+    exportIcs.addActionListener(e -> openExportDialog("ics"));
+    JMenuItem copyEvents = new JMenuItem("Copy Events...");
+    copyEvents.addActionListener(e -> openCopyEventsDialog());
+    JMenuItem showStatus = new JMenuItem("Show Status...");
+    showStatus.addActionListener(e -> openShowStatusDialog());
+    JMenuItem rangeView = new JMenuItem("View Date Range...");
+    rangeView.addActionListener(e -> openRangeViewDialog());
+
+    tools.add(editCalendar);
+    tools.addSeparator();
+    tools.add(exportCsv);
+    tools.add(exportIcs);
+    tools.add(copyEvents);
+    tools.addSeparator();
+    tools.add(showStatus);
+    tools.add(rangeView);
+    menuBar.add(tools);
+    return menuBar;
   }
 
   /**
@@ -576,6 +620,107 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
       features.deleteEvents(subject.getText(),
           startDate.getText().trim() + "T" + startTime.getText().trim(),
           wholeSeries.isSelected());
+    }
+  }
+
+  /**
+   * Open a dialog to edit a calendar's name or timezone.
+   */
+  private void openEditCalendarDialog() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    JComboBox<String> calendarBox = new JComboBox<>(availableCalendars.toArray(new String[0]));
+    panel.add(new JLabel("Calendar:"));
+    panel.add(calendarBox);
+    JComboBox<String> propertyBox = new JComboBox<>(new String[] {"name", "timezone"});
+    panel.add(new JLabel("Property:"));
+    panel.add(propertyBox);
+    JTextField newValue = createLabelTextField(panel, "New value:", "", 15);
+
+    int result = JOptionPane.showConfirmDialog(this, panel, "Edit Calendar",
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+    if (result == JOptionPane.OK_OPTION && calendarBox.getSelectedItem() != null) {
+      features.editCalendar(calendarBox.getSelectedItem().toString(),
+          propertyBox.getSelectedItem().toString(), newValue.getText().trim());
+    }
+  }
+
+  /**
+   * Open a dialog to export the active calendar to a file with the given extension.
+   *
+   * @param extension the file extension to export to ("csv" or "ics")
+   */
+  private void openExportDialog(String extension) {
+    String name = JOptionPane.showInputDialog(this,
+        "Enter file name (the ." + extension + " extension is added automatically):");
+    if (name == null || name.isBlank()) {
+      return;
+    }
+    features.exportCalendar(name.trim() + "." + extension);
+  }
+
+  /**
+   * Open a dialog to copy a range of events from the active calendar to another calendar.
+   */
+  private void openCopyEventsDialog() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    String defaultDate = (selectedDate == null) ? "2025-01-01" : selectedDate.toString();
+    JTextField fromDate = createLabelTextField(panel, "From Date (YYYY-MM-DD):", defaultDate, 12);
+    JTextField toDate = createLabelTextField(panel, "To Date (YYYY-MM-DD):", defaultDate, 12);
+    JComboBox<String> targetBox = new JComboBox<>(availableCalendars.toArray(new String[0]));
+    panel.add(new JLabel("Target calendar:"));
+    panel.add(targetBox);
+    JTextField targetStart =
+        createLabelTextField(panel, "Target Start Date (YYYY-MM-DD):", defaultDate, 12);
+
+    int result = JOptionPane.showConfirmDialog(this, panel, "Copy Events",
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+    if (result == JOptionPane.OK_OPTION && targetBox.getSelectedItem() != null) {
+      features.copyEvents(fromDate.getText().trim(), toDate.getText().trim(),
+          targetBox.getSelectedItem().toString(), targetStart.getText().trim());
+    }
+  }
+
+  /**
+   * Open a dialog to check the busy/available status at a given date and time.
+   */
+  private void openShowStatusDialog() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    JTextField date = createLabelTextField(panel, "Date (YYYY-MM-DD):",
+        (selectedDate == null) ? "2025-01-01" : selectedDate.toString(), 12);
+    JTextField time = createLabelTextField(panel, "Time (HH:MM):", "09:00", 8);
+
+    int result = JOptionPane.showConfirmDialog(this, panel, "Show Status",
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+    if (result == JOptionPane.OK_OPTION) {
+      features.showStatus(date.getText().trim() + "T" + time.getText().trim());
+    }
+  }
+
+  /**
+   * Open a dialog to view all events of the active calendar within a date/time range.
+   */
+  private void openRangeViewDialog() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    String defaultDate = (selectedDate == null) ? "2025-01-01" : selectedDate.toString();
+    JTextField startDate = createLabelTextField(panel, "Start Date (YYYY-MM-DD):", defaultDate, 12);
+    JTextField startTime = createLabelTextField(panel, "Start Time (HH:MM):", "00:00", 8);
+    JTextField endDate = createLabelTextField(panel, "End Date (YYYY-MM-DD):", defaultDate, 12);
+    JTextField endTime = createLabelTextField(panel, "End Time (HH:MM):", "23:59", 8);
+
+    int result = JOptionPane.showConfirmDialog(this, panel, "View Events in Range",
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+    if (result == JOptionPane.OK_OPTION) {
+      features.requestEventsInRange(
+          startDate.getText().trim() + "T" + startTime.getText().trim(),
+          endDate.getText().trim() + "T" + endTime.getText().trim());
     }
   }
 

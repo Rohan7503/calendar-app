@@ -118,5 +118,49 @@ public interface Features {
    *                          and all later events in the series.
    */
   void deleteEvents(String subject, String start, boolean deleteWholeSeries);
+
+  /**
+   * Edits a property of an existing calendar.
+   *
+   * @param name     the name of the calendar to edit.
+   * @param property the property to change ("name" or "timezone").
+   * @param newValue the new value for the property.
+   */
+  void editCalendar(String name, String property, String newValue);
+
+  /**
+   * Exports the active calendar to the given file path. The file type is determined by the
+   * file extension (.csv or .ics).
+   *
+   * @param path the destination file path.
+   */
+  void exportCalendar(String path);
+
+  /**
+   * Copies all events in a date range from the active calendar to a target calendar.
+   *
+   * @param startDate       the first date of the source range (inclusive).
+   * @param endDate         the last date of the source range (inclusive).
+   * @param targetCalendar  the name of the destination calendar.
+   * @param targetStartDate the date in the target calendar the range should start at.
+   */
+  void copyEvents(String startDate, String endDate, String targetCalendar,
+                  String targetStartDate);
+
+  /**
+   * Reports whether the user is busy or available at the given date/time on the active calendar.
+   *
+   * @param dateTime the date/time to check.
+   */
+  void showStatus(String dateTime);
+
+  /**
+   * Loads the events of the active calendar in the given date/time range and asks the view to
+   * present them.
+   *
+   * @param start the start of the range.
+   * @param end   the end of the range.
+   */
+  void requestEventsInRange(String start, String end);
 }
 

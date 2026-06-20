@@ -4,11 +4,14 @@ import calendar.model.Event;
 import calendar.model.MultiCalModelInterface;
 import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiInterface;
+import calendar.view.CalViewInterface;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -234,7 +237,116 @@ public class GuiControllerImpl implements Features {
     }
   }
 
+  @Override
+  public void editCalendar(String name, String property, String newValue) {
+    try {
+      model.editCalendar(name, property, newValue);
+      String highlight = property.equalsIgnoreCase("name") ? newValue : name;
+      view.showMessage("Calendar updated successfully");
+      view.showCalendars(model.listCalendars(), highlight);
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    }
+  }
+
+  @Override
+  public void exportCalendar(String path) {
+    ParsedCommand command = new ParsedCommand(CommandType.EXPORT,
+        Collections.singletonMap("path", path));
+    new Export(model, new GuiViewAdapter(), command).execute();
+  }
+
+  @Override
+  public void copyEvents(String startDate, String endDate, String targetCalendar,
+                         String targetStartDate) {
+    try {
+      model.copyEventsBetween(LocalDate.parse(startDate), LocalDate.parse(endDate),
+          targetCalendar, LocalDate.parse(targetStartDate));
+      view.showMessage("Events copied successfully");
+      view.refreshEvents();
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date");
+    }
+  }
+
+  @Override
+  public void showStatus(String dateTime) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      String status = activeCalendar.checkAvailability(LocalDateTime.parse(dateTime));
+      view.showMessage("Status: " + status);
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void requestEventsInRange(String start, String end) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      List<Event> events = activeCalendar.getEventsInRange(
+          LocalDateTime.parse(start), LocalDateTime.parse(end));
+      view.showMessage(formatEvents(events));
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
   //********************** Helper methods *******************************//
+
+  /**
+   * Formats a list of events into a human-readable, multi-line string for display in a dialog.
+   *
+   * @param events the events to format.
+   * @return a formatted listing, or a friendly message if there are no events.
+   */
+  private String formatEvents(List<Event> events) {
+    if (events.isEmpty()) {
+      return "No events found in this range.";
+    }
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    StringBuilder sb = new StringBuilder();
+    for (Event e : events) {
+      if (e.isAllDay()) {
+        sb.append(e.getSubject())
+            .append(" — All day (").append(e.getStart().toLocalDate()).append(")");
+      } else {
+        sb.append(e.getSubject())
+            .append(" — ").append(e.getStart().format(formatter))
+            .append(" to ").append(e.getEnd().format(formatter));
+      }
+      sb.append(System.lineSeparator());
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Adapts the GUI view to the {@link CalViewInterface} expected by the shared {@link Export}
+   * command, forwarding messages and errors to the GUI's dialog-based feedback.
+   */
+  private final class GuiViewAdapter implements CalViewInterface {
+    @Override
+    public void displayMessage(String msg) {
+      view.showMessage(msg);
+    }
+
+    @Override
+    public void displayError(String msg) {
+      view.showError(msg);
+    }
+
+    @Override
+    public void displayEvents(List<Event> events) {
+      view.showMessage(formatEvents(events));
+    }
+  }
 
 
   /**
