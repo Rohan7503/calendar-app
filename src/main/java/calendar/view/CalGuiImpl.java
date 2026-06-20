@@ -6,7 +6,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -24,7 +23,7 @@ import javax.swing.JScrollPane;
 public class CalGuiImpl extends JFrame implements CalGuiInterface {
 
   private final SidebarPanel sidebar;
-  private final MonthViewPanel monthView;
+  private final CalendarSurfacePanel surface;
   private final DayDetailPanel dayDetail;
   private final StatusStrip statusStrip;
   private transient Features features;
@@ -39,9 +38,9 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     sidebar = new SidebarPanel(name -> features.selectCalendar(name));
-    monthView = new MonthViewPanel(
+    surface = new CalendarSurfacePanel(
         date -> features.requestEventsForDay(date.toString()),
-        this::loadMonth);
+        this::loadVisibleEvents);
     dayDetail = new DayDetailPanel(
         event -> dialogs.openEditEvent(event),
         event -> dialogs.confirmAndDeleteEvent(event));
@@ -49,7 +48,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
 
     setLayout(new BorderLayout());
     add(titledScroll("Calendars", sidebar, Theme.SIDE_PANEL), BorderLayout.WEST);
-    add(monthView, BorderLayout.CENTER);
+    add(surface, BorderLayout.CENTER);
     add(titledScroll("Day Events", dayDetail, Theme.DETAIL_PANEL), BorderLayout.EAST);
     add(statusStrip, BorderLayout.SOUTH);
   }
@@ -59,13 +58,13 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     pack();
     setLocationRelativeTo(null);
     setVisible(true);
-    monthView.selectToday();
+    surface.selectToday();
   }
 
   @Override
   public void addFeatures(Features features) {
     this.features = features;
-    this.dialogs = new GuiDialogs(this, features, monthView::getSelectedDate,
+    this.dialogs = new GuiDialogs(this, features, surface::getSelectedDate,
         sidebar::getCalendarNames);
     add(new ActionToolbar(dialogs), BorderLayout.NORTH);
     setJMenuBar(new AppMenuBar(dialogs));
@@ -84,7 +83,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
 
   @Override
   public void showMonthEvents(List<Event> events) {
-    monthView.setMonthEvents(events);
+    surface.setEvents(events);
   }
 
   @Override
@@ -94,25 +93,24 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
 
   @Override
   public void refreshEvents() {
-    loadMonth();
-    LocalDate selected = monthView.getSelectedDate();
+    loadVisibleEvents();
+    LocalDate selected = surface.getSelectedDate();
     if (selected != null) {
       features.requestEventsForDay(selected.toString());
     }
   }
 
   /**
-   * Requests the events for the currently displayed month so the grid can show event indicators.
-   * No-op until the controller callbacks have been attached.
+   * Requests the events for the surface's currently visible range so the active view can show its
+   * event indicators. No-op until the controller callbacks have been attached.
    */
-  private void loadMonth() {
+  private void loadVisibleEvents() {
     if (features == null) {
       return;
     }
-    YearMonth month = monthView.getDisplayedMonth();
     features.requestMonthView(
-        month.atDay(1).atStartOfDay().toString(),
-        month.atEndOfMonth().atTime(23, 59).toString());
+        surface.getVisibleStart().toString(),
+        surface.getVisibleEnd().toString());
   }
 
   @Override
