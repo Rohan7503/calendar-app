@@ -39,14 +39,14 @@ final class EventChip {
   }
 
   private static String truncate(String text) {
-    return text.length() <= MAX_CHARS ? text : text.substring(0, MAX_CHARS - 1) + "…";
+    return text.length() <= MAX_CHARS ? text : text.substring(0, MAX_CHARS - 3) + "...";
   }
 
   private static String fullText(Event event) {
     if (event.isAllDay()) {
       return event.getSubject() + " (all day)";
     }
-    return String.format("%s (%s–%s)", event.getSubject(),
+    return String.format("%s (%s-%s)", event.getSubject(),
         TIME.format(event.getStart()), TIME.format(event.getEnd()));
   }
 }

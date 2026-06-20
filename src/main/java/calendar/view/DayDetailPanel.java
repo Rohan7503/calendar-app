@@ -135,9 +135,9 @@ class DayDetailPanel extends JPanel {
 
   private String when(Event event) {
     if (event.isAllDay()) {
-      return DATE.format(event.getStart()) + "  ·  All day";
+      return DATE.format(event.getStart()) + "  -  All day";
     }
-    return String.format("%s  ·  %s – %s", DATE.format(event.getStart()),
+    return String.format("%s  -  %s to %s", DATE.format(event.getStart()),
         TIME.format(event.getStart()), TIME.format(event.getEnd()));
   }
 
@@ -148,7 +148,7 @@ class DayDetailPanel extends JPanel {
     }
     if (event.getStatus() != null) {
       if (sb.length() > 0) {
-        sb.append("  ·  ");
+        sb.append("  -  ");
       }
       sb.append(event.getStatus());
     }
