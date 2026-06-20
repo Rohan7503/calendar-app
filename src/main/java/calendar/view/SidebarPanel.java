@@ -115,11 +115,14 @@ class SidebarPanel extends JPanel {
 
     JButton settings = UiFactory.smallButton("Edit");
     settings.setToolTipText("Calendar settings");
+    settings.getAccessibleContext().setAccessibleName("Settings for " + summary.name());
     settings.addActionListener(e -> onEditCalendar.accept(summary.name()));
 
     row.add(dot, BorderLayout.WEST);
     row.add(text, BorderLayout.CENTER);
     row.add(settings, BorderLayout.EAST);
+    row.getAccessibleContext().setAccessibleName(
+        "Calendar " + summary.name() + (active ? ", active" : ""));
     row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     row.addMouseListener(new MouseAdapter() {
       @Override

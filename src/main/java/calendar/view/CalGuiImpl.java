@@ -5,14 +5,18 @@ import calendar.model.Event;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 
 /**
  * Swing implementation of {@link CalGuiInterface}. This class is the application shell: it lays out
@@ -50,6 +54,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     statusStrip = new StatusStrip();
 
     setLayout(new BorderLayout());
+    setMinimumSize(new Dimension(960, 640));
     add(titledScroll("Calendars", sidebar, Theme.SIDE_PANEL), BorderLayout.WEST);
     add(surface, BorderLayout.CENTER);
     add(titledScroll("Day Events", dayDetail, Theme.DETAIL_PANEL), BorderLayout.EAST);
@@ -62,6 +67,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     setLocationRelativeTo(null);
     setVisible(true);
     surface.selectToday();
+    statusStrip.showMessage("Tip: Ctrl+N new event, Ctrl+T today, Ctrl+1/2/3 switch views");
   }
 
   @Override
@@ -71,7 +77,29 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
         sidebar::getCalendarNames);
     add(new ActionToolbar(dialogs), BorderLayout.NORTH);
     setJMenuBar(new AppMenuBar(dialogs));
+    installShortcuts();
     revalidate();
+  }
+
+  /**
+   * Registers application-wide keyboard shortcuts: create event (Ctrl+N), today (Ctrl+T),
+   * export (Ctrl+E), previous/next period (Ctrl+Left/Right), and switch views (Ctrl+1/2/3).
+   */
+  private void installShortcuts() {
+    bind("control N", e -> dialogs.openCreateEvent());
+    bind("control T", e -> surface.selectToday());
+    bind("control E", e -> dialogs.openExport("csv"));
+    bind("control LEFT", e -> surface.previous());
+    bind("control RIGHT", e -> surface.next());
+    bind("control 1", e -> surface.switchTo(ViewMode.MONTH));
+    bind("control 2", e -> surface.switchTo(ViewMode.WEEK));
+    bind("control 3", e -> surface.switchTo(ViewMode.DAY));
+  }
+
+  private void bind(String keyStroke, ActionListener action) {
+    JRootPane root = getRootPane();
+    root.registerKeyboardAction(action, KeyStroke.getKeyStroke(keyStroke),
+        JComponent.WHEN_IN_FOCUSED_WINDOW);
   }
 
   @Override

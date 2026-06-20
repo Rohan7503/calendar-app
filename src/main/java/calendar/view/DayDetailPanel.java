@@ -110,10 +110,14 @@ class DayDetailPanel extends JPanel {
     actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
     JButton edit = UiFactory.smallButton("Edit");
     edit.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    edit.setToolTipText("Edit " + event.getSubject());
+    edit.getAccessibleContext().setAccessibleName("Edit event " + event.getSubject());
     edit.addActionListener(e -> onEdit.accept(event));
     JButton delete = UiFactory.smallButton("Delete");
     delete.setForeground(Theme.DANGER);
     delete.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    delete.setToolTipText("Delete " + event.getSubject());
+    delete.getAccessibleContext().setAccessibleName("Delete event " + event.getSubject());
     delete.addActionListener(e -> onDelete.accept(event));
     actions.add(edit);
     actions.add(Box.createRigidArea(new Dimension(0, Theme.UNIT / 2)));

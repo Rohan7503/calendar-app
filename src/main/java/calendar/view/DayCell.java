@@ -68,6 +68,9 @@ class DayCell extends JPanel {
       });
     }
     applyStyle();
+    getAccessibleContext().setAccessibleName(
+        date.getDayOfWeek() + " " + date.getMonth() + " " + date.getDayOfMonth()
+            + (today ? ", today" : ""));
   }
 
   /**

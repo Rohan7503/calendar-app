@@ -158,12 +158,15 @@ class CalendarSurfacePanel extends JPanel {
 
   private JPanel buildHeader() {
     JButton prev = UiFactory.secondaryButton("<");
-    prev.setToolTipText("Previous");
+    prev.setToolTipText("Previous (Ctrl+Left)");
+    prev.getAccessibleContext().setAccessibleName("Previous period");
     prev.addActionListener(e -> previous());
     JButton today = UiFactory.secondaryButton("Today");
+    today.setToolTipText("Go to today (Ctrl+T)");
     today.addActionListener(e -> selectToday());
     JButton next = UiFactory.secondaryButton(">");
-    next.setToolTipText("Next");
+    next.setToolTipText("Next (Ctrl+Right)");
+    next.getAccessibleContext().setAccessibleName("Next period");
     next.addActionListener(e -> next());
 
     JPanel nav = new JPanel(new FlowLayout(FlowLayout.LEFT, Theme.UNIT / 2, 0));
@@ -173,7 +176,11 @@ class CalendarSurfacePanel extends JPanel {
     nav.add(next);
 
     periodLabel.setFont(Theme.TITLE);
+    periodLabel.getAccessibleContext().setAccessibleName("Current period");
 
+    monthButton.setToolTipText("Month view (Ctrl+1)");
+    weekButton.setToolTipText("Week view (Ctrl+2)");
+    dayButton.setToolTipText("Day view (Ctrl+3)");
     final ButtonGroup group = new ButtonGroup();
     JPanel switcher = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
     switcher.setBackground(Theme.BACKGROUND);

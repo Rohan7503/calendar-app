@@ -20,6 +20,7 @@ class ActionToolbar extends JPanel {
     setBackground(Theme.SURFACE);
 
     JButton createEvent = UiFactory.primaryButton("Create Event");
+    createEvent.setToolTipText("Create a new event (Ctrl+N)");
     createEvent.addActionListener(e -> dialogs.openCreateEvent());
     JButton createSeriesCount = UiFactory.secondaryButton("Create Series (Count)");
     createSeriesCount.addActionListener(e -> dialogs.openCreateSeries(true));
