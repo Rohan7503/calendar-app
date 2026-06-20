@@ -47,6 +47,14 @@ public interface CalGuiInterface {
   void showMonthEvents(List<Event> events);
 
   /**
+   * Present the results of a date-range query.
+   *
+   * @param title  a heading describing the range
+   * @param events the events found within the range
+   */
+  void showEventsInRange(String title, List<Event> events);
+
+  /**
    * Re-fetch the events to be displayed.
    */
   void refreshEvents();

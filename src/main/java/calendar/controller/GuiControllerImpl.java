@@ -10,7 +10,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 
@@ -291,7 +290,7 @@ public class GuiControllerImpl implements Features {
       activeCalendar = model.getActiveCalendar();
       List<Event> events = activeCalendar.getEventsInRange(
           LocalDateTime.parse(start), LocalDateTime.parse(end));
-      view.showMessage(formatEvents(events));
+      view.showEventsInRange("Events from " + start + " to " + end, events);
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
     } catch (DateTimeException e) {
@@ -316,34 +315,9 @@ public class GuiControllerImpl implements Features {
   //********************** Helper methods *******************************//
 
   /**
-   * Formats a list of events into a human-readable, multi-line string for display in a dialog.
-   *
-   * @param events the events to format.
-   * @return a formatted listing, or a friendly message if there are no events.
-   */
-  private String formatEvents(List<Event> events) {
-    if (events.isEmpty()) {
-      return "No events found in this range.";
-    }
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    StringBuilder sb = new StringBuilder();
-    for (Event e : events) {
-      if (e.isAllDay()) {
-        sb.append(e.getSubject())
-            .append(" — All day (").append(e.getStart().toLocalDate()).append(")");
-      } else {
-        sb.append(e.getSubject())
-            .append(" — ").append(e.getStart().format(formatter))
-            .append(" to ").append(e.getEnd().format(formatter));
-      }
-      sb.append(System.lineSeparator());
-    }
-    return sb.toString();
-  }
-
-  /**
    * Adapts the GUI view to the {@link CalViewInterface} expected by the shared {@link Export}
-   * command, forwarding messages and errors to the GUI's dialog-based feedback.
+   * command, forwarding messages and errors to the GUI's feedback. {@code displayEvents} is unused
+   * by the export path.
    */
   private final class GuiViewAdapter implements CalViewInterface {
     @Override
@@ -358,7 +332,7 @@ public class GuiControllerImpl implements Features {
 
     @Override
     public void displayEvents(List<Event> events) {
-      view.showMessage(formatEvents(events));
+      // Not used by export; range results are rendered via showEventsInRange.
     }
   }
 

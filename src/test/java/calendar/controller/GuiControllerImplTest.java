@@ -416,6 +416,13 @@ public class GuiControllerImplTest {
     }
 
     @Override
+    public void showEventsInRange(String title, List<Event> events) {
+      log.append(title)
+          .append(" count=").append(events.size())
+          .append(System.lineSeparator());
+    }
+
+    @Override
     public void refreshEvents() {
       log.append("Event refreshed.");
     }
@@ -529,7 +536,8 @@ public class GuiControllerImplTest {
     guiController.createCalendar("work", "America/Los_Angeles");
     guiController.requestEventsInRange("2025-10-27T00:00", "2025-10-28T00:00");
     viewLogs = ((MockView) gui).getLogs();
-    assertTrue(viewLogs.contains("No events found in this range."));
+    assertTrue(viewLogs.contains("Events from 2025-10-27T00:00 to 2025-10-28T00:00"));
+    assertTrue(viewLogs.contains("count=0"));
   }
 
   @Test

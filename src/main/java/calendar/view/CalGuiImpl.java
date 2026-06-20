@@ -26,6 +26,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   private final SidebarPanel sidebar;
   private final MonthViewPanel monthView;
   private final DayDetailPanel dayDetail;
+  private final StatusStrip statusStrip;
   private transient Features features;
   private transient GuiDialogs dialogs;
 
@@ -44,11 +45,13 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     dayDetail = new DayDetailPanel(
         event -> dialogs.openEditEvent(event),
         event -> dialogs.confirmAndDeleteEvent(event));
+    statusStrip = new StatusStrip();
 
     setLayout(new BorderLayout());
     add(titledScroll("Calendars", sidebar, Theme.SIDE_PANEL), BorderLayout.WEST);
     add(monthView, BorderLayout.CENTER);
     add(titledScroll("Day Events", dayDetail, Theme.DETAIL_PANEL), BorderLayout.EAST);
+    add(statusStrip, BorderLayout.SOUTH);
   }
 
   @Override
@@ -85,6 +88,11 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   }
 
   @Override
+  public void showEventsInRange(String title, List<Event> events) {
+    dayDetail.showEvents(title, events);
+  }
+
+  @Override
   public void refreshEvents() {
     loadMonth();
     LocalDate selected = monthView.getSelectedDate();
@@ -109,7 +117,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
 
   @Override
   public void showMessage(String message) {
-    JOptionPane.showMessageDialog(this, message);
+    statusStrip.showMessage(message);
   }
 
   @Override
