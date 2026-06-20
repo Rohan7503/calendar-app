@@ -78,6 +78,10 @@ The following design decisions reflect the current behavior of the system:
 - **GUI parity.** The GUI exposes the previously text-only features (export to CSV/ICS, copying a
   range of events between calendars, busy/available status, and viewing a date range) through a
   **Tools** menu, in addition to creating all-day events and deleting events.
+- **GUI structure.** The Swing GUI is split into focused components under `calendar.view`
+  (sidebar, month surface with event indicators, day detail cards, form dialogs with date/time
+  pickers, and a non-modal status strip) coordinated by a thin `CalGuiImpl` shell. The rationale
+  and roadmap are in `docs/ui-ux-redesign-plan.md`.
 - **The build fails on test failures.** The test task no longer ignores failures, so a failing test
   fails the build.
 

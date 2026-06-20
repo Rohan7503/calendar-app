@@ -310,6 +310,27 @@ Each phase keeps the app buildable and shippable, and the model/controller stay 
 
 ---
 
+## 18a. Implementation status (R0–R3 delivered)
+
+Phases R0–R3 of §16 are implemented. The monolithic `CalGuiImpl` is now a thin shell
+(`CalGuiInterface` impl) that lays out and coordinates focused view classes in `calendar.view`:
+
+- `Theme`, `UiFactory` — shared colors/fonts/spacing and styled-component factories.
+- `SidebarPanel` — calendar list and active highlight.
+- `MonthViewPanel` + `DayCell` + `EventChip` — six-week month grid with event chips, today/
+  selected/weekend/outside-month styling, and a Today action.
+- `DayDetailPanel` — selected-day and range results rendered as event cards with inline edit/delete.
+- `GuiDialogs` + `FormComponents` — form-based dialogs with date/time pickers and inline validation.
+- `ActionToolbar`, `AppMenuBar` — top actions and the Tools menu.
+- `StatusStrip` — non-modal feedback for successes and one-shot results.
+
+Two small contract additions support the surface: `Features.requestMonthView` /
+`CalGuiInterface.showMonthEvents` (month indicators) and `CalGuiInterface.showEventsInRange`
+(range results in the detail panel). The model and text/headless controllers are unchanged.
+
+Not yet done (deferred, see §16/§17): week and day views (R4), the richer sidebar with per-calendar
+colors and timezone subtitles (R5), and the full accessibility/keyboard pass (R6).
+
 ## 18. Open questions
 
 - Is the **JDK-only-at-runtime** constraint firm? If a Look-and-Feel library (FlatLaf) or JavaFX
