@@ -162,5 +162,14 @@ public interface Features {
    * @param end   the end of the range.
    */
   void requestEventsInRange(String start, String end);
+
+  /**
+   * Loads the events of the active calendar within the given range and asks the view to render
+   * them onto the month grid. Used to populate day-cell event indicators.
+   *
+   * @param startDate the start of the displayed month range.
+   * @param endDate   the end of the displayed month range.
+   */
+  void requestMonthView(String startDate, String endDate);
 }
 

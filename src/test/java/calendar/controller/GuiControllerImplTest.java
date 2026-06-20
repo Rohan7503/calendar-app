@@ -410,6 +410,12 @@ public class GuiControllerImplTest {
     }
 
     @Override
+    public void showMonthEvents(List<Event> events) {
+      log.append("Month events : ").append(events.size())
+          .append(System.lineSeparator());
+    }
+
+    @Override
     public void refreshEvents() {
       log.append("Event refreshed.");
     }
@@ -524,6 +530,14 @@ public class GuiControllerImplTest {
     guiController.requestEventsInRange("2025-10-27T00:00", "2025-10-28T00:00");
     viewLogs = ((MockView) gui).getLogs();
     assertTrue(viewLogs.contains("No events found in this range."));
+  }
+
+  @Test
+  public void testRequestMonthViewCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.requestMonthView("2025-10-01T00:00", "2025-10-31T23:59");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Month events : "));
   }
 
   @Test

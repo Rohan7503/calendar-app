@@ -6,6 +6,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -37,7 +38,9 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     sidebar = new SidebarPanel(name -> features.selectCalendar(name));
-    monthView = new MonthViewPanel(date -> features.requestEventsForDay(date.toString()));
+    monthView = new MonthViewPanel(
+        date -> features.requestEventsForDay(date.toString()),
+        this::loadMonth);
     dayDetail = new DayDetailPanel(
         event -> dialogs.openEditEvent(event),
         event -> dialogs.confirmAndDeleteEvent(event));
@@ -53,6 +56,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     pack();
     setLocationRelativeTo(null);
     setVisible(true);
+    monthView.selectToday();
   }
 
   @Override
@@ -76,11 +80,31 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   }
 
   @Override
+  public void showMonthEvents(List<Event> events) {
+    monthView.setMonthEvents(events);
+  }
+
+  @Override
   public void refreshEvents() {
+    loadMonth();
     LocalDate selected = monthView.getSelectedDate();
     if (selected != null) {
       features.requestEventsForDay(selected.toString());
     }
+  }
+
+  /**
+   * Requests the events for the currently displayed month so the grid can show event indicators.
+   * No-op until the controller callbacks have been attached.
+   */
+  private void loadMonth() {
+    if (features == null) {
+      return;
+    }
+    YearMonth month = monthView.getDisplayedMonth();
+    features.requestMonthView(
+        month.atDay(1).atStartOfDay().toString(),
+        month.atEndOfMonth().atTime(23, 59).toString());
   }
 
   @Override

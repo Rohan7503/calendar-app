@@ -299,6 +299,20 @@ public class GuiControllerImpl implements Features {
     }
   }
 
+  @Override
+  public void requestMonthView(String startDate, String endDate) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      List<Event> events = activeCalendar.getEventsInRange(
+          LocalDateTime.parse(startDate), LocalDateTime.parse(endDate));
+      view.showMonthEvents(events);
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
   //********************** Helper methods *******************************//
 
   /**

@@ -40,6 +40,13 @@ public interface CalGuiInterface {
   void showEventsForDay(LocalDate day, List<Event> events);
 
   /**
+   * Render the given events as indicators on the month grid.
+   *
+   * @param events the events within the currently displayed month
+   */
+  void showMonthEvents(List<Event> events);
+
+  /**
    * Re-fetch the events to be displayed.
    */
   void refreshEvents();
