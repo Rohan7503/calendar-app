@@ -97,6 +97,11 @@ public class MultiCalModelImpl implements MultiCalModelInterface {
   }
 
   @Override
+  public SingleCalModelInterface getCalendar(String calName) throws IllegalArgumentException {
+    return findUniqueCalendar(calName);
+  }
+
+  @Override
   public void copyEvent(String eventName, LocalDateTime sourceStartTime, String targetCalendar,
                         LocalDateTime targetStartTime)
       throws IllegalArgumentException, IllegalStateException {

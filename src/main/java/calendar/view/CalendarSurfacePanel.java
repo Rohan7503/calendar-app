@@ -2,7 +2,6 @@ package calendar.view;
 
 import calendar.model.Event;
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,10 +18,11 @@ import javax.swing.SwingConstants;
 
 /**
  * The central calendar surface. It hosts the month, week, and day views behind a shared header
- * (previous / today / next navigation, the current period label, and a Month/Week/Day switcher)
- * and a {@link CardLayout}. It owns the anchor date that drives the visible period and the selected
- * day. Navigation and view switches notify {@code onRangeChanged} so the shell can load the events
- * for the visible range; selecting a day notifies {@code onDaySelected} so the detail updates.
+ * (previous / today / next navigation, the current period label, and a Month/Week/Day switcher).
+ * Only the active view is kept in the component tree at a time. It owns the anchor date that drives
+ * the visible period and the selected day. Navigation and view switches notify {@code
+ * onRangeChanged} so the shell can load the events for the visible range; selecting a day notifies
+ * {@code onDaySelected} so the detail updates.
  */
 class CalendarSurfacePanel extends JPanel {
 
@@ -31,8 +31,7 @@ class CalendarSurfacePanel extends JPanel {
 
   private final transient Consumer<LocalDate> onDaySelected;
   private final transient Runnable onRangeChanged;
-  private final CardLayout cards = new CardLayout();
-  private final JPanel deck = new JPanel(cards);
+  private final JPanel deck = new JPanel(new BorderLayout());
   private final JLabel periodLabel = new JLabel("", SwingConstants.CENTER);
   private final MonthGrid monthGrid;
   private final WeekGrid weekGrid;
@@ -64,13 +63,11 @@ class CalendarSurfacePanel extends JPanel {
     add(buildHeader(), BorderLayout.NORTH);
 
     deck.setBackground(Theme.BACKGROUND);
-    deck.add(monthGrid, ViewMode.MONTH.name());
-    deck.add(weekGrid, ViewMode.WEEK.name());
-    deck.add(dayGrid, ViewMode.DAY.name());
     add(deck, BorderLayout.CENTER);
 
     // Render an initial (empty) month so the frame packs to a sensible size before events load.
     monthGrid.showMonth(YearMonth.from(anchor), null);
+    showActiveGrid();
     periodLabel.setText(periodText());
   }
 
@@ -222,9 +219,24 @@ class CalendarSurfacePanel extends JPanel {
       default:
         monthGrid.showMonth(YearMonth.from(anchor), selected);
     }
-    cards.show(deck, mode.name());
+    showActiveGrid();
     periodLabel.setText(periodText());
     onRangeChanged.run();
+  }
+
+  private void showActiveGrid() {
+    JPanel active;
+    if (mode == ViewMode.WEEK) {
+      active = weekGrid;
+    } else if (mode == ViewMode.DAY) {
+      active = dayGrid;
+    } else {
+      active = monthGrid;
+    }
+    deck.removeAll();
+    deck.add(active, BorderLayout.CENTER);
+    deck.revalidate();
+    deck.repaint();
   }
 
   private void activeSetSelected(LocalDate date) {

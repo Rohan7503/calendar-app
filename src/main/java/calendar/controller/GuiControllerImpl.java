@@ -311,6 +311,15 @@ public class GuiControllerImpl implements Features {
   }
 
   @Override
+  public void persist() {
+    try {
+      new CalendarStore().save(model, CalendarStore.defaultPath());
+    } catch (RuntimeException e) {
+      // Best-effort save on close; ignore storage failures.
+    }
+  }
+
+  @Override
   public void requestMonthView(String startDate, String endDate) {
     try {
       activeCalendar = model.getActiveCalendar();

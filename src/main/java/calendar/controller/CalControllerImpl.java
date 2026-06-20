@@ -129,8 +129,17 @@ public class CalControllerImpl implements CalControllerInterface {
     guiView.addFeatures(guiController);
 
     ZoneId systemZone = ZoneId.systemDefault();
-    calModel.createCalendar("Default", systemZone);
-    calModel.useCalendar("Default");
+    try {
+      new CalendarStore().load(calModel, CalendarStore.defaultPath());
+    } catch (RuntimeException e) {
+      view.displayError("Could not load saved calendars; starting fresh.");
+    }
+    if (calModel.listCalendars().isEmpty()) {
+      calModel.createCalendar("Default", systemZone);
+      calModel.useCalendar("Default");
+    } else if (calModel.getActiveCalendarName() == null) {
+      calModel.useCalendar(calModel.listCalendars().get(0));
+    }
 
     List<CalendarSummary> summaries = new ArrayList<>();
     for (String calName : calModel.listCalendars()) {

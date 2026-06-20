@@ -82,6 +82,15 @@ The following design decisions reflect the current behavior of the system:
   (sidebar, month surface with event indicators, day detail cards, form dialogs with date/time
   pickers, and a non-modal status strip) coordinated by a thin `CalGuiImpl` shell. The rationale
   and roadmap are in `docs/ui-ux-redesign-plan.md`.
+- **Month / Week / Day views.** The calendar surface offers three views behind a switcher, sharing
+  the same navigation, event chips, and day selection. Only the active view is kept in the
+  component tree at a time.
+- **Local persistence (GUI only).** When the GUI closes, calendars and events are written to a
+  small text file at `~/.calendar-app/calendars.dat` and reloaded on the next GUI launch. The
+  format is line-based and dependency-free (`CalendarStore`). The interactive and headless text
+  modes are unchanged and do not read or write this file.
+- **Keyboard shortcuts.** The GUI binds Ctrl+N (new event), Ctrl+T (today), Ctrl+E (export),
+  Ctrl+Left/Right (previous/next period), and Ctrl+1/2/3 (Month/Week/Day).
 - **The build fails on test failures.** The test task no longer ignores failures, so a failing test
   fails the build.
 
@@ -292,6 +301,30 @@ directory, including:
 1. Clone the repository
 2. Follow the instructions in USEME.md
 ```
+
+## 6.1 Demo walkthrough
+
+To populate a realistic set of calendars and events for a demo, run the bundled command file in
+headless mode:
+
+```bash
+./gradlew jar
+java -jar build/libs/calendar-1.0.jar --mode headless res/demo_commands.txt
+```
+
+This creates a `Work` and a `Personal` calendar (different timezones), a recurring standup, several
+meetings, an all-day event, and a multi-day event, then prints a range and exports `work_demo.csv`.
+
+For a GUI demo, launch with no arguments and:
+1. Use the month grid to see event chips; click a day to see its events as cards on the right.
+2. Switch between **Month / Week / Day** (toolbar buttons or Ctrl+1/2/3) and navigate with
+   **< / Today / >** (or Ctrl+Left/Right, Ctrl+T).
+3. Create an event with **Create Event** (Ctrl+N), including the **All-day** option.
+4. Add a second calendar from the sidebar (**+ New calendar**), give it a different timezone, and
+   switch between calendars.
+5. Try the **Tools** menu: export to CSV/ICS, copy events between calendars, check status, and view
+   a date range (results appear in the day panel).
+6. Close the window and relaunch — your calendars and events are restored from local storage.
 
 # 7 Acknowledgement
 

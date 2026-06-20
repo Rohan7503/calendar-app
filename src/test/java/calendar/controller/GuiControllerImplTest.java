@@ -116,6 +116,11 @@ public class GuiControllerImplTest {
     }
 
     @Override
+    public SingleMockModel getCalendar(String calName) {
+      return calendars.get(calName);
+    }
+
+    @Override
     public void copyEvent(String eventName, LocalDateTime sourceStartTime, String targetCalendar,
                           LocalDateTime targetStartTime)
         throws IllegalArgumentException, IllegalStateException {

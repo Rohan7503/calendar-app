@@ -6,6 +6,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -78,6 +80,12 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     add(new ActionToolbar(dialogs), BorderLayout.NORTH);
     setJMenuBar(new AppMenuBar(dialogs));
     installShortcuts();
+    addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        features.persist();
+      }
+    });
     revalidate();
   }
 

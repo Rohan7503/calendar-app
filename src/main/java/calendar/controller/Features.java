@@ -171,5 +171,11 @@ public interface Features {
    * @param endDate   the end of the displayed month range.
    */
   void requestMonthView(String startDate, String endDate);
+
+  /**
+   * Persists the current calendars and events to local storage. Best-effort; intended to be
+   * called when the application is closing.
+   */
+  void persist();
 }
 

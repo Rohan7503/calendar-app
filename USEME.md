@@ -139,3 +139,37 @@ time with the pickers. Selecting a day in the month grid first pre-fills the dat
 7. The edition is reflected in the right pane on the correct day.
 8. Switch to a different calendar if needed by clicking on it.
 9. Close the window to quit the program.
+
+### Month / Week / Day views and navigation:
+- Use the **Month / Week / Day** buttons (top-right of the calendar) or **Ctrl+1 / Ctrl+2 / Ctrl+3**
+  to switch views.
+- Use **<** / **Today** / **>** (or **Ctrl+Left** / **Ctrl+T** / **Ctrl+Right**) to move between
+  periods. The week view shows all-day events above the timed events in each day column.
+
+### Keyboard shortcuts:
+- **Ctrl+N** — create event
+- **Ctrl+T** — go to today
+- **Ctrl+E** — export to CSV
+- **Ctrl+Left / Ctrl+Right** — previous / next period
+- **Ctrl+1 / Ctrl+2 / Ctrl+3** — Month / Week / Day view
+
+### Saving your data:
+- When you close the GUI, your calendars and events are saved to
+  `~/.calendar-app/calendars.dat` and restored automatically the next time you launch the GUI.
+- The interactive and headless text modes do not use this file; they start empty as before.
+
+### Demo walkthrough:
+- For a quick populated demo, run the bundled command file in headless mode:
+  ```bash
+  java -jar build/libs/calendar-1.0.jar --mode headless res/demo_commands.txt
+  ```
+  It creates `Work` and `Personal` calendars with a recurring standup, several meetings, an all-day
+  event, and a multi-day event, prints a range, and exports `work_demo.csv`.
+- For a GUI demo, launch with no arguments and follow the example flow above, then try the
+  **Month/Week/Day** views and the **Tools** menu (export, copy, status, date range).
+
+### Capturing updated screenshots:
+The screenshots in `res/gui_images/` predate the redesign. To refresh them, launch the GUI and
+capture: (1) the full window in Month view with events, (2) the Week and Day views, (3) the
+Create Event dialog with the All-day option, and (4) the sidebar showing multiple calendars. Save
+them into `res/gui_images/` using the existing file names to update this document in place.

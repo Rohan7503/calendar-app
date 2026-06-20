@@ -72,6 +72,15 @@ public interface MultiCalModelInterface {
   ZoneId getTimezone(String calName) throws IllegalArgumentException;
 
   /**
+   * Returns the named calendar.
+   *
+   * @param calName the calendar name
+   * @return the {@link SingleCalModelInterface} for that calendar
+   * @throws IllegalArgumentException if no calendar with that name exists
+   */
+  SingleCalModelInterface getCalendar(String calName) throws IllegalArgumentException;
+
+  /**
    * Copies a single event from the active calendar to a target calendar,
    * starting at the specified date and time.
    *
