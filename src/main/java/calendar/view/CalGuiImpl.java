@@ -136,8 +136,11 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
       JPanel eventPanel = new JPanel();
       eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.X_AXIS));
 
-      JLabel eventLabel = new JLabel(String.format("%s | %s to %s", e.getSubject(),
-          e.getStart().format(dateFormatter), e.getEnd().format(dateFormatter)));
+      String labelText = e.isAllDay()
+          ? String.format("%s | All day", e.getSubject())
+          : String.format("%s | %s to %s", e.getSubject(),
+              e.getStart().format(dateFormatter), e.getEnd().format(dateFormatter));
+      JLabel eventLabel = new JLabel(labelText);
       eventLabel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
 
       JButton editBtn = new JButton("Edit");
@@ -376,18 +379,31 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
         (selectedDate == null) ? "2025-01-01" : selectedDate.toString(), 0);
     JTextField endTime = createLabelTextField(remRows, "End Time (HH:MM):", "17:00", 0);
 
+    JCheckBox allDay = new JCheckBox("All-day event");
+    allDay.addItemListener(e -> {
+      boolean timed = !allDay.isSelected();
+      startTime.setEnabled(timed);
+      endDate.setEnabled(timed);
+      endTime.setEnabled(timed);
+    });
+
     p.add(firstRow, BorderLayout.NORTH);
     p.add(remRows, BorderLayout.CENTER);
+    p.add(allDay, BorderLayout.SOUTH);
 
     int result = JOptionPane.showConfirmDialog(this, p, "Create Event",
         JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
     if (result == JOptionPane.OK_OPTION) {
-      features.createEvent(
-          subject.getText(),
-          startDate.getText().trim() + "T" + startTime.getText().trim(),
-          endDate.getText().trim() + "T" + endTime.getText().trim()
-      );
+      if (allDay.isSelected()) {
+        features.createAllDayEvent(subject.getText(), startDate.getText().trim());
+      } else {
+        features.createEvent(
+            subject.getText(),
+            startDate.getText().trim() + "T" + startTime.getText().trim(),
+            endDate.getText().trim() + "T" + endTime.getText().trim()
+        );
+      }
     }
   }
 

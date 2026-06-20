@@ -40,6 +40,27 @@ public class CalModelImplTest {
   }
 
   @Test
+  public void testAddEventRejectsDuplicateIdentityWithDifferentMetadata() {
+    this.model.addEvent(this.event);
+    Event sameIdentity = Event.getBuilder()
+        .subject("Gym")
+        .start(LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0))
+        .end(LocalDateTime.of(2020, Month.JANUARY, 1, 1, 0, 0))
+        .location(EventLocation.ONLINE)
+        .status(EventStatus.PRIVATE)
+        .description("Different metadata, same identity")
+        .allDay(true)
+        .build();
+    try {
+      this.model.addEvent(sameIdentity);
+      fail();
+    } catch (IllegalArgumentException e) {
+      assertEquals("Event already exists", e.getMessage());
+    }
+    assertEquals(1, this.model.getAllEvents().size());
+  }
+
+  @Test
   public void testAddEvent() {
     Event event2 = Event.getBuilder()
         .subject("Work")

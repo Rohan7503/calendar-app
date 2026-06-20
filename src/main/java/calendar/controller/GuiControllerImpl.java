@@ -17,6 +17,9 @@ import java.util.List;
  * will be called by a view using this controller.
  */
 public class GuiControllerImpl implements Features {
+  private static final LocalTime ALL_DAY_START = LocalTime.of(8, 0);
+  private static final LocalTime ALL_DAY_END = LocalTime.of(17, 0);
+
   private final MultiCalModelInterface model;
   private final CalGuiInterface view;
   private SingleCalModelInterface activeCalendar;
@@ -90,6 +93,27 @@ public class GuiControllerImpl implements Features {
       view.showError(e.getMessage());
     } catch (DateTimeException e) {
       view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void createAllDayEvent(String subject, String date) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      LocalDate day = LocalDate.parse(date);
+      Event event = Event.getBuilder()
+          .subject(subject)
+          .start(day.atTime(ALL_DAY_START))
+          .end(day.atTime(ALL_DAY_END))
+          .allDay(true)
+          .build();
+      activeCalendar.addEvent(event);
+      view.showMessage("Event Created successfully!" + System.lineSeparator());
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date");
     }
   }
 

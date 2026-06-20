@@ -727,6 +727,7 @@ public class MultiCalControllerImplTest {
         .location(EventLocation.ONLINE)
         .description("\"Gym\" for an hour.")
         .status(EventStatus.PRIVATE)
+        .allDay(true)
         .build();
 
     MultiCalModelInterface model = new MultiCalModelImpl();
@@ -758,6 +759,42 @@ public class MultiCalControllerImplTest {
       assertEquals("True", fields[5]);
       assertEquals("\"\"\"Gym\"\" for an hour.\"", fields[6]);
       assertEquals("True", fields[8]);
+    } catch (IOException e) {
+      fail();
+    } finally {
+      cleanupFiles();
+    }
+  }
+
+  @Test
+  public void testCliAllDayEventExportsAsAllDayButTimedEventDoesNot() {
+    MultiCalModelInterface model = new MultiCalModelImpl();
+    model.createCalendar("C1", ZoneId.of("America/New_York"));
+
+    input = "use calendar --name C1"
+        + System.lineSeparator()
+        + "create event Holiday on 2025-10-27"
+        + System.lineSeparator()
+        + "create event Meeting from 2025-10-28T08:00 to 2025-10-28T17:00"
+        + System.lineSeparator()
+        + "export cal data_export_sample.csv"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(model, mockView, inStream);
+    controller.runInteractive();
+
+    try (BufferedReader br = new BufferedReader(new FileReader("data_export_sample.csv"))) {
+      br.readLine();
+      String[] allDayRow = br.readLine().split(",");
+      assertEquals("Holiday", allDayRow[0]);
+      assertEquals("", allDayRow[2]);
+      assertEquals("True", allDayRow[5]);
+
+      String[] timedRow = br.readLine().split(",");
+      assertEquals("Meeting", timedRow[0]);
+      assertEquals("08:00 AM", timedRow[2]);
+      assertEquals("False", timedRow[5]);
     } catch (IOException e) {
       fail();
     } finally {
@@ -909,6 +946,7 @@ public class MultiCalControllerImplTest {
         .location(EventLocation.ONLINE)
         .description("\"Gym\" for an hour.")
         .status(EventStatus.PRIVATE)
+        .allDay(true)
         .build();
 
     MultiCalModelInterface model = new MultiCalModelImpl();

@@ -42,6 +42,14 @@ public interface Features {
   void createEvent(String subject, String start, String end);
 
   /**
+   * Creates a single all-day event on the active calendar.
+   *
+   * @param subject the event title.
+   * @param date    the date of the all-day event (YYYY-MM-DD).
+   */
+  void createAllDayEvent(String subject, String date);
+
+  /**
    * Creates an event series by count.
    *
    * @param subject  event subject.

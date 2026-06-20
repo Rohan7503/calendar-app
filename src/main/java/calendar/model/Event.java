@@ -6,9 +6,11 @@ import java.util.Objects;
 /**
  * Represents a single calendar event.
  * An event has a subject, description, start and end times,
- * location, and status. Each event may optionally belong to a series
+ * location, status, and an all-day flag. Each event may optionally belong to a series
  * (indicated by a non-null seriesId). An event belonging to a series
  * must not span more than 1 day.
+ * All-day events are marked by the {@link #isAllDay()} flag rather than being inferred
+ * from their start/end times.
  * Use {@code EventBuilder} to build an object of this class.
  */
 public class Event {
@@ -20,6 +22,7 @@ public class Event {
   private final EventLocation location;
   private final EventStatus status;
   private final String seriesId;
+  private final boolean allDay;
 
   /**
    * Construct an event using its builder object's fields.
@@ -34,6 +37,7 @@ public class Event {
     this.location = builder.location;
     this.status = builder.status;
     this.seriesId = builder.seriesId;
+    this.allDay = builder.allDay;
 
     if (subject == null || subject.isBlank()) {
       throw new IllegalArgumentException("Event subject cannot be null or empty.");
@@ -115,6 +119,18 @@ public class Event {
   }
 
   /**
+   * Reports whether this event is an all-day event.
+   * All-day events are a first-class concept: the flag is authoritative and is set explicitly
+   * at construction time. It is not inferred from the start/end times, so an ordinary timed
+   * event that happens to run from 08:00 to 17:00 is not treated as all-day.
+   *
+   * @return {@code true} if this event is an all-day event, {@code false} otherwise.
+   */
+  public boolean isAllDay() {
+    return allDay;
+  }
+
+  /**
    * Returns a new builder of the Event class.
    *
    * @return An EventBuilder object
@@ -147,10 +163,21 @@ public class Event {
         .end(this.end)
         .location(this.location)
         .status(this.status)
-        .seriesId(this.seriesId);
+        .seriesId(this.seriesId)
+        .allDay(this.allDay);
   }
 
 
+  /**
+   * Two events are considered equal when they share the same subject, start time, and end time.
+   * This is the application-wide identity rule for an event: description, location, status,
+   * series membership, and the all-day flag are deliberately excluded. Duplicate detection,
+   * edits, and copy operations all rely on this contract, so two events with the same
+   * subject/start/end but differing metadata are treated as the same event.
+   *
+   * @param o the object to compare against.
+   * @return {@code true} if {@code o} is an event with the same subject, start, and end.
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -193,6 +220,7 @@ public class Event {
     private EventLocation location;
     private EventStatus status;
     private String seriesId;
+    private boolean allDay;
 
     /**
      * Set the subject field of the builder.
@@ -268,6 +296,17 @@ public class Event {
      */
     public EventBuilder seriesId(String seriesId) {
       this.seriesId = seriesId;
+      return this;
+    }
+
+    /**
+     * Marks whether the event being built is an all-day event. Defaults to {@code false}.
+     *
+     * @param allDay {@code true} to build an all-day event
+     * @return An EventBuilder object
+     */
+    public EventBuilder allDay(boolean allDay) {
+      this.allDay = allDay;
       return this;
     }
 

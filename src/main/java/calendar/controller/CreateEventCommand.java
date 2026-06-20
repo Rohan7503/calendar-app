@@ -64,7 +64,8 @@ class CreateEventCommand {
   private Event createEvents(ParsedCommand parsedCommand) throws IllegalArgumentException {
     LocalDateTime start;
     LocalDateTime end;
-    if (!parsedCommand.getArguments().containsKey("start")) {
+    boolean allDay = !parsedCommand.getArguments().containsKey("start");
+    if (allDay) {
       List<LocalDateTime> dateTimeList = localeAllDayConverter(parsedCommand);
       start = dateTimeList.get(0);
       end = dateTimeList.get(1);
@@ -76,6 +77,7 @@ class CreateEventCommand {
         .start(start)
         .end(end)
         .subject(parsedCommand.getArguments().get("subject"))
+        .allDay(allDay)
         .build();
   }
 
