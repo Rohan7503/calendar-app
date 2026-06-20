@@ -41,14 +41,10 @@ class ShowStatus {
    *                                  while checking availability.
    */
   void execute() throws IllegalArgumentException {
-    try {
-      SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
-      String msg = activeCalendar.checkAvailability(
-          getDateTimeProp(command));
-      calView.displayMessage(msg + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
+    String msg = activeCalendar.checkAvailability(
+        getDateTimeProp(command));
+    calView.displayMessage(msg + System.lineSeparator());
   }
 
   /**

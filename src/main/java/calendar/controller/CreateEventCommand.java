@@ -47,13 +47,9 @@ class CreateEventCommand {
    *
    */
   void execute() throws IllegalArgumentException {
-    try {
-      SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
-      activeCalendar.addEvent(createEvents(command));
-      calView.displayMessage("Event Created successfully!" + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
+    activeCalendar.addEvent(createEvents(command));
+    calView.displayMessage("Event Created successfully!" + System.lineSeparator());
   }
 
   /**

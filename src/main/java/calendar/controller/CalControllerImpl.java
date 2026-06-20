@@ -10,7 +10,7 @@ import java.time.ZoneId;
 import java.util.Scanner;
 
 /**
- * Implementation of the ICalController interface.
+ * Implementation of the {@link CalControllerInterface}.
  * This class is responsible for coordinating the flow of the calendar application.
  * It receives input from the user (either interactively or headless), interprets commands
  * via the CommandParser, and calls the appropriate methods in the model and view.

@@ -51,8 +51,6 @@ public class CopyEvents {
       calView.displayMessage("Events Copied Successfully" + System.lineSeparator());
     } catch (DateTimeException e) {
       throw new IllegalArgumentException("invalid Date");
-    } catch (IllegalStateException e) {
-      throw new IllegalStateException(e.getMessage());
     }
   }
 }

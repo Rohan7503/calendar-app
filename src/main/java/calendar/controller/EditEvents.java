@@ -39,18 +39,14 @@ class EditEvents {
    *
    */
   void execute() throws IllegalArgumentException {
-    try {
-      SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
-      activeCalendar.editEvents(
-          getNonDateTimeProp("property", command),
-          getNonDateTimeProp("subject", command),
-          getDateTimeProp(command),
-          getNonDateTimeProp("newValue", command),
-          Boolean.parseBoolean(command.getArguments().get("editWholeSeries")));
-      calView.displayMessage("Events Edited successfully!" + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
+    activeCalendar.editEvents(
+        getNonDateTimeProp("property", command),
+        getNonDateTimeProp("subject", command),
+        getDateTimeProp(command),
+        getNonDateTimeProp("newValue", command),
+        Boolean.parseBoolean(command.getArguments().get("editWholeSeries")));
+    calView.displayMessage("Events Edited successfully!" + System.lineSeparator());
   }
 
   /**

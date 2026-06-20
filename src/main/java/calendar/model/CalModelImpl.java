@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of the ICalModel interface.
+ * Implementation of the {@link CalModelInterface}.
  * Manages the storage, retrieval, and modification of Event objects.
  * Handles adding individual events, creating event series, editing events,
  * and retrieving events based on queries.

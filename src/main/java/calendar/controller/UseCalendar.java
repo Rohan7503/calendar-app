@@ -43,14 +43,10 @@ class UseCalendar {
    * @throws IllegalArgumentException if the calendar name is invalid or the switch operation fails.
    */
   SingleCalModelInterface execute() throws IllegalArgumentException {
-    try {
-      calModel.useCalendar(command.getArguments().get("calName"));
-      activeCalendar = calModel.getActiveCalendar();
-      calView.displayMessage("Now using calendar : "
-          + command.getArguments().get("calName") + System.lineSeparator());
-      return activeCalendar;
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    calModel.useCalendar(command.getArguments().get("calName"));
+    activeCalendar = calModel.getActiveCalendar();
+    calView.displayMessage("Now using calendar : "
+        + command.getArguments().get("calName") + System.lineSeparator());
+    return activeCalendar;
   }
 }

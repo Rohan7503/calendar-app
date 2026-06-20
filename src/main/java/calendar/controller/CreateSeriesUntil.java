@@ -55,8 +55,6 @@ class CreateSeriesUntil {
           getNonDateTimeProp(command),
           until);
       calView.displayMessage("Series Created successfully!" + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
     } catch (DateTimeException e) {
       throw new IllegalArgumentException("Invalid Date");
     }

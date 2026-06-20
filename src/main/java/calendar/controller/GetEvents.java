@@ -47,20 +47,16 @@ class GetEvents {
    *                                  if the date-time format cannot be parsed
    */
   void execute() throws IllegalArgumentException {
-    try {
-      SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
-      if (!command.getArguments().containsKey("start")) {
-        List<LocalDateTime> dateTimes = localeDateTimeConverter(command);
-        events = activeCalendar.getEventsInRange(dateTimes.get(0), dateTimes.get(1));
-      } else {
-        events = activeCalendar.getEventsInRange(
-            getDateTimeProp("start", command),
-            getDateTimeProp("end", command));
-      }
-      calView.displayEvents(events);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
+    SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
+    if (!command.getArguments().containsKey("start")) {
+      List<LocalDateTime> dateTimes = localeDateTimeConverter(command);
+      events = activeCalendar.getEventsInRange(dateTimes.get(0), dateTimes.get(1));
+    } else {
+      events = activeCalendar.getEventsInRange(
+          getDateTimeProp("start", command),
+          getDateTimeProp("end", command));
     }
+    calView.displayEvents(events);
   }
 
   /**

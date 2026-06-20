@@ -22,23 +22,19 @@ class BetterParser extends CommandParser implements Parser {
    */
   @Override
   public ParsedCommand parse(String input) throws IllegalArgumentException {
-    try {
-      input = input.replaceAll("\\s+", " ").trim();
-      if (input.matches("^create\\s+calendar(\\s+|$).*")) {
-        return parseCreateCalendar(input);
-      } else if (input.matches("^use\\s+calendar(\\s+|$).*")) {
-        return parseUseCalendar(input);
-      } else if (input.matches("^edit\\s+calendar(\\s+|$).*")) {
-        return parseEditCalendar(input);
-      } else if (input.matches("^copy\\s+event(\\s+|$).*")) {
-        return parseEventCopy(input);
-      } else if (input.matches("^copy\\s+events(\\s+|$).*")) {
-        return parseEventRangeCopy(input);
-      } else {
-        return super.parse(input);
-      }
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
+    input = input.replaceAll("\\s+", " ").trim();
+    if (input.matches("^create\\s+calendar(\\s+|$).*")) {
+      return parseCreateCalendar(input);
+    } else if (input.matches("^use\\s+calendar(\\s+|$).*")) {
+      return parseUseCalendar(input);
+    } else if (input.matches("^edit\\s+calendar(\\s+|$).*")) {
+      return parseEditCalendar(input);
+    } else if (input.matches("^copy\\s+event(\\s+|$).*")) {
+      return parseEventCopy(input);
+    } else if (input.matches("^copy\\s+events(\\s+|$).*")) {
+      return parseEventRangeCopy(input);
+    } else {
+      return super.parse(input);
     }
   }
 
@@ -55,25 +51,21 @@ class BetterParser extends CommandParser implements Parser {
    *                                  format does not conform to the expected standard.
    */
   private ParsedCommand parseCreateCalendar(String input) throws IllegalArgumentException {
-    try {
-      regex = "^create\\s+calendar\\s+--name\\s+(\\S+)\\s+--timezone\\s+([^\\s\\\\]+)$";
-      Matcher matcher = createMatcher(regex, input);
-      if (matcher.find()) {
-        String timezone = matcher.group(2);
-        validateTimezoneFormat(timezone);
-        args = parseArgs(Arrays.asList("calName", "timezone"),
-            matcher
-        );
-      } else {
-        throw new IllegalArgumentException(
-            "Invalid create calendar syntax. Expected Format: " + System.lineSeparator()
-                + "create calendar --name <calName> --timezone area/location");
-      }
-
-      return new ParsedCommand(CommandType.CREATE_CALENDAR, args);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
+    regex = "^create\\s+calendar\\s+--name\\s+(\\S+)\\s+--timezone\\s+([^\\s\\\\]+)$";
+    Matcher matcher = createMatcher(regex, input);
+    if (matcher.find()) {
+      String timezone = matcher.group(2);
+      validateTimezoneFormat(timezone);
+      args = parseArgs(Arrays.asList("calName", "timezone"),
+          matcher
+      );
+    } else {
+      throw new IllegalArgumentException(
+          "Invalid create calendar syntax. Expected Format: " + System.lineSeparator()
+              + "create calendar --name <calName> --timezone area/location");
     }
+
+    return new ParsedCommand(CommandType.CREATE_CALENDAR, args);
   }
 
   /**
@@ -87,28 +79,24 @@ class BetterParser extends CommandParser implements Parser {
    *                                  format does not conform to the expected standard.
    */
   private ParsedCommand parseEditCalendar(String input) throws IllegalArgumentException {
-    try {
-      regex = "^edit\\s+calendar\\s+--name\\s+(\\S+)\\s+--property\\s+(\\S+)\\s+(\\S+)$";
-      Matcher matcher = createMatcher(regex, input);
-      if (matcher.find()) {
-        String propertyName = matcher.group(2);
-        if (propertyName.equals("timezone")) {
-          String timezone = matcher.group(3);
-          validateTimezoneFormat(timezone);
-        }
-        args = parseArgs(Arrays.asList("calName", "propertyName", "newValue"),
-            matcher
-        );
-      } else {
-        throw new IllegalArgumentException("Invalid Edit calendar syntax. Expected Format: "
-            + System.lineSeparator()
-            + "edit calendar --name <name-of-calendar> --property "
-            + "<property-name> <new-property-value>");
+    regex = "^edit\\s+calendar\\s+--name\\s+(\\S+)\\s+--property\\s+(\\S+)\\s+(\\S+)$";
+    Matcher matcher = createMatcher(regex, input);
+    if (matcher.find()) {
+      String propertyName = matcher.group(2);
+      if (propertyName.equals("timezone")) {
+        String timezone = matcher.group(3);
+        validateTimezoneFormat(timezone);
       }
-      return new ParsedCommand(CommandType.EDIT_CALENDAR, args);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
+      args = parseArgs(Arrays.asList("calName", "propertyName", "newValue"),
+          matcher
+      );
+    } else {
+      throw new IllegalArgumentException("Invalid Edit calendar syntax. Expected Format: "
+          + System.lineSeparator()
+          + "edit calendar --name <name-of-calendar> --property "
+          + "<property-name> <new-property-value>");
     }
+    return new ParsedCommand(CommandType.EDIT_CALENDAR, args);
   }
 
   /**
@@ -252,14 +240,10 @@ class BetterParser extends CommandParser implements Parser {
    *                                  does not follow the {@code Area/Location} pattern.
    */
   private void validateTimezoneFormat(String timezone) throws IllegalArgumentException {
-    try {
-      if (!timezone.matches("^[A-Za-z_]+/[A-Za-z_]+(?:/[A-Za-z_]+)*$")) {
-        throw new IllegalArgumentException(
-            "Invalid timezone format. "
-                + "Expected format: 'Area/Location' (e.g., 'America/New_York')");
-      }
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
+    if (!timezone.matches("^[A-Za-z_]+/[A-Za-z_]+(?:/[A-Za-z_]+)*$")) {
+      throw new IllegalArgumentException(
+          "Invalid timezone format. "
+              + "Expected format: 'Area/Location' (e.g., 'America/New_York')");
     }
   }
 

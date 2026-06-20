@@ -50,16 +50,12 @@ class CreateSeriesCount {
    *                                  or contain unparsable date/time values.
    */
   void execute() throws IllegalArgumentException {
-    try {
-      SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
-      activeCalendar.addEventSeriesForCount(
-          createEvents(command),
-          getNonDateTimeProp(command),
-          count);
-      calView.displayMessage("Series Created successfully!" + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
+    activeCalendar.addEventSeriesForCount(
+        createEvents(command),
+        getNonDateTimeProp(command),
+        count);
+    calView.displayMessage("Series Created successfully!" + System.lineSeparator());
   }
 
   /**

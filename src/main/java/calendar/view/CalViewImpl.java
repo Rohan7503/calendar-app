@@ -5,7 +5,7 @@ import java.io.PrintStream;
 import java.util.List;
 
 /**
- * Implementation of the ICalView interface.
+ * Implementation of the {@link CalViewInterface}.
  * Responsible for presenting information to the user, including:
  * - Displaying messages and errors
  * - Displaying lists of events

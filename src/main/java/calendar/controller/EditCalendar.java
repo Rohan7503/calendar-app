@@ -36,13 +36,9 @@ public class EditCalendar {
    *                                  or new value is invalid or if the operation fails
    */
   void execute() throws IllegalArgumentException {
-    try {
-      calModel.editCalendar(command.getArguments().get("calName"),
-          command.getArguments().get("propertyName"),
-          command.getArguments().get("newValue"));
-      calView.displayMessage("Calendar Edited Successfully" + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    calModel.editCalendar(command.getArguments().get("calName"),
+        command.getArguments().get("propertyName"),
+        command.getArguments().get("newValue"));
+    calView.displayMessage("Calendar Edited Successfully" + System.lineSeparator());
   }
 }
