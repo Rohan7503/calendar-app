@@ -76,23 +76,23 @@ Executes all commands in `sample_ommands.txt` and displays the output in the ter
 ## How to use the GUI
 
 The window has a top action toolbar, a calendars sidebar (left), the month surface (center), a day
-detail panel (right), a **Tools** menu, and a status strip along the bottom for feedback. (The
-screenshots below predate the latest visual refresh and are kept for general orientation.)
+detail panel (right), a **Tools** menu, and a status strip along the bottom for feedback.
 
-![Image of the GUI](res/gui_images/panes.png)
+![Calendar App, month view](res/gui_images/month-view.png)
 
 ### Calendars sidebar (left):
 - Lists the available calendars; the active one is highlighted.
 - By default, when the application is run, a "Default" calendar is created and made active.
 - Selecting a calendar makes it active and updates the month surface and day panel.
-![Image of the calendars pane](res/gui_images/lpane.png)
+- Each calendar shows a color marker and its timezone; use **+ New calendar** to add one and the
+  per-row settings to rename or change its timezone.
+![Calendars sidebar](res/gui_images/sidebar.png)
 
 ### Day detail panel (right):
 - Shows the events for the selected day as cards, each with the subject, time (or "All day"),
   location/status when present, and inline **Edit** and **Delete** actions.
 - **Delete** asks for confirmation before removing that single event.
 - This panel is also used to present the results of a **View Date Range** query.
-![Image of the day events pane](res/gui_images/rpane.png)
 
 ### Month surface (center):
 - A six-week month grid. Use **<** / **>** to change month and **Today** to jump back to the
@@ -110,7 +110,7 @@ screenshots below predate the latest visual refresh and are kept for general ori
   ignored and a first-class all-day event is created.
 - **Edit Multiple Events** and **Delete Events** let you apply a change to an entire series, or to
   an event and all later events in its series, using the scope option in the dialog.
-![Image of the create event series until date dialog box](res/gui_images/tpane.png)
+![Create Event dialog](res/gui_images/create-event.png)
 
 ### Status strip (bottom):
 - Routine successes and one-shot results (such as a busy/available check) appear briefly here
@@ -145,6 +145,7 @@ time with the pickers. Selecting a day in the month grid first pre-fills the dat
   to switch views.
 - Use **<** / **Today** / **>** (or **Ctrl+Left** / **Ctrl+T** / **Ctrl+Right**) to move between
   periods. The week view shows all-day events above the timed events in each day column.
+![Week / Day view](res/gui_images/week-day-view.png)
 
 ### Keyboard shortcuts:
 - **Ctrl+N** — create event
@@ -167,9 +168,3 @@ time with the pickers. Selecting a day in the month grid first pre-fills the dat
   event, and a multi-day event, prints a range, and exports `work_demo.csv`.
 - For a GUI demo, launch with no arguments and follow the example flow above, then try the
   **Month/Week/Day** views and the **Tools** menu (export, copy, status, date range).
-
-### Capturing updated screenshots:
-The screenshots in `res/gui_images/` predate the redesign. To refresh them, launch the GUI and
-capture: (1) the full window in Month view with events, (2) the Week and Day views, (3) the
-Create Event dialog with the All-day option, and (4) the sidebar showing multiple calendars. Save
-them into `res/gui_images/` using the existing file names to update this document in place.
