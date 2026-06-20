@@ -55,6 +55,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   private final JButton createSeriesCountButton;
   private final JButton createSeriesUntilButton;
   private final JButton editEventsButton;
+  private final JButton deleteEventsButton;
   private LocalDate selectedDate;
   private YearMonth displayedMonth;
 
@@ -75,6 +76,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     createSeriesCountButton = new JButton("Create Series (Count)");
     createSeriesUntilButton = new JButton("Create Series (Until Date)");
     editEventsButton = new JButton("Edit Multiple Events");
+    deleteEventsButton = new JButton("Delete Events");
 
     setLayout(new BorderLayout());
     addTopActionButtons(BorderLayout.NORTH);
@@ -99,6 +101,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     createSeriesCountButton.addActionListener(e -> openCreateEventSeriesDialog(true));
     createSeriesUntilButton.addActionListener(e -> openCreateEventSeriesDialog(false));
     editEventsButton.addActionListener(e -> openEditEventsDialog());
+    deleteEventsButton.addActionListener(e -> openDeleteEventsDialog());
   }
 
   @Override
@@ -146,8 +149,12 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
       JButton editBtn = new JButton("Edit");
       editBtn.addActionListener(ae -> openEditEventDialog(e));
 
+      JButton deleteBtn = new JButton("Delete");
+      deleteBtn.addActionListener(ae -> confirmAndDeleteEvent(e));
+
       eventPanel.add(eventLabel);
       eventPanel.add(editBtn);
+      eventPanel.add(deleteBtn);
       dayEventsPanel.add(eventPanel);
       dayEventsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
     }
@@ -187,6 +194,7 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     buttonPanel.add(createSeriesCountButton);
     buttonPanel.add(createSeriesUntilButton);
     buttonPanel.add(editEventsButton);
+    buttonPanel.add(deleteEventsButton);
     this.add(buttonPanel, position);
   }
 
@@ -371,8 +379,8 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     JPanel firstRow = new JPanel(new GridLayout(1, 1));
     JPanel remRows = new JPanel(new GridLayout(0, 2));
 
-    JTextField subject = createLabelTextField(firstRow, "Subject:", "", 0);
-    JTextField startDate = createLabelTextField(remRows, "Start Date (YYYY-MM-DD):",
+    final JTextField subject = createLabelTextField(firstRow, "Subject:", "", 0);
+    final JTextField startDate = createLabelTextField(remRows, "Start Date (YYYY-MM-DD):",
         (selectedDate == null) ? "2025-01-01" : selectedDate.toString(), 0);
     JTextField startTime = createLabelTextField(remRows, "Start Time (HH:MM):", "08:00", 0);
     JTextField endDate = createLabelTextField(remRows, "End Date (YYYY-MM-DD):",
@@ -514,6 +522,60 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
           startDate.getText().trim() + "T" + startTime.getText().trim(),
           newValueField.getText(), wholeSeries.isSelected()
       );
+    }
+  }
+
+  /**
+   * Asks the user to confirm deletion of a single event and, if confirmed, requests the
+   * controller to delete it.
+   *
+   * @param event the event to delete
+   */
+  private void confirmAndDeleteEvent(Event event) {
+    int choice = JOptionPane.showConfirmDialog(this,
+        "Delete \"" + event.getSubject() + "\"?", "Delete Event",
+        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+    if (choice == JOptionPane.YES_OPTION) {
+      features.deleteEvent(event.getSubject(), event.getStart().toString(),
+          event.getEnd().toString());
+    }
+  }
+
+  /**
+   * Open a dialog box with the necessary fields for deleting multiple events. A radio button
+   * selects between deleting the entire series the matched event belongs to, or deleting the
+   * matched event and all later events in its series. If the event is not part of a series,
+   * only that event is deleted.
+   */
+  private void openDeleteEventsDialog() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    final JTextField subject = createLabelTextField(panel, "Subject:", "", 20);
+    final JTextField startDate = createLabelTextField(panel, "Start Date (YYYY-MM-DD):",
+        (selectedDate == null) ? "2025-01-01" : selectedDate.toString(), 15);
+    final JTextField startTime = createLabelTextField(panel, "Start Time (HH:MM):", "08:00", 10);
+
+    JRadioButton wholeSeries = new JRadioButton("Delete entire series");
+    JRadioButton fromHere = new JRadioButton("Delete from this event onwards");
+    ButtonGroup group = new ButtonGroup();
+    group.add(wholeSeries);
+    group.add(fromHere);
+    wholeSeries.setSelected(true);
+
+    JPanel scopePanel = new JPanel();
+    scopePanel.setLayout(new BoxLayout(scopePanel, BoxLayout.Y_AXIS));
+    scopePanel.add(new JLabel("Apply to:"));
+    scopePanel.add(wholeSeries);
+    scopePanel.add(fromHere);
+    panel.add(scopePanel);
+
+    int result = JOptionPane.showConfirmDialog(this, panel, "Delete Events",
+        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+    if (result == JOptionPane.OK_OPTION) {
+      features.deleteEvents(subject.getText(),
+          startDate.getText().trim() + "T" + startTime.getText().trim(),
+          wholeSeries.isSelected());
     }
   }
 

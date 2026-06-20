@@ -97,5 +97,26 @@ public interface Features {
    */
   void editEvents(String property, String subject, String start, String newValue,
                   boolean editWholeSeries);
+
+  /**
+   * Deletes a single event from the active calendar.
+   *
+   * @param subject the subject of the event to delete.
+   * @param start   the start date/time of the event.
+   * @param end     the end date/time of the event.
+   */
+  void deleteEvent(String subject, String start, String end);
+
+  /**
+   * Deletes one or more events from the active calendar. If the matched event is part of a
+   * series, either the whole series or this event and all later events in the series are
+   * deleted; otherwise only the matched event is deleted.
+   *
+   * @param subject           the subject of the event(s) to delete.
+   * @param start             the start date/time of the matched event.
+   * @param deleteWholeSeries if true, deletes the whole series; otherwise deletes this event
+   *                          and all later events in the series.
+   */
+  void deleteEvents(String subject, String start, boolean deleteWholeSeries);
 }
 

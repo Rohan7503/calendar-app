@@ -40,6 +40,55 @@ public class CalModelImplTest {
   }
 
   @Test
+  public void testDeleteSingleEvent() {
+    this.model.addEvent(this.event);
+    this.model.deleteEvent("Gym", this.event.getStart(), this.event.getEnd());
+    assertEquals(0, this.model.getAllEvents().size());
+  }
+
+  @Test
+  public void testDeleteEventNoMatchThrows() {
+    try {
+      this.model.deleteEvent("Ghost", this.event.getStart(), this.event.getEnd());
+      fail();
+    } catch (IllegalArgumentException e) {
+      assertEquals("No matching event found.", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testDeleteWholeSeries() {
+    Event prototype = Event.getBuilder()
+        .subject("Class")
+        .start(LocalDateTime.parse("2025-11-03T09:00"))
+        .end(LocalDateTime.parse("2025-11-03T10:00"))
+        .build();
+    this.model.addEventSeriesForCount(prototype, "MWF", 5);
+    this.model.deleteEvents("Class", LocalDateTime.parse("2025-11-03T09:00"), true);
+    assertEquals(0, this.model.getAllEvents().size());
+  }
+
+  @Test
+  public void testDeleteSeriesFromThisEventOnwards() {
+    Event prototype = Event.getBuilder()
+        .subject("Class")
+        .start(LocalDateTime.parse("2025-11-03T09:00"))
+        .end(LocalDateTime.parse("2025-11-03T10:00"))
+        .build();
+    this.model.addEventSeriesForCount(prototype, "MWF", 5);
+    LocalDateTime thirdStart = this.model.getAllEvents().get(2).getStart();
+    this.model.deleteEvents("Class", thirdStart, false);
+    assertEquals(2, this.model.getAllEvents().size());
+  }
+
+  @Test
+  public void testDeleteNonSeriesEventViaDeleteEvents() {
+    this.model.addEvent(this.event);
+    this.model.deleteEvents("Gym", this.event.getStart(), true);
+    assertEquals(0, this.model.getAllEvents().size());
+  }
+
+  @Test
   public void testAddEventRejectsDuplicateIdentityWithDifferentMetadata() {
     this.model.addEvent(this.event);
     Event sameIdentity = Event.getBuilder()

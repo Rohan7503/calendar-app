@@ -178,6 +178,18 @@ public class CalControllerImpl implements CalControllerInterface {
           editEvent.execute();
           break;
 
+        case DELETE_EVENT:
+          DeleteEvent deleteEvent = new DeleteEvent(
+              calModel, view, parsedCommand);
+          deleteEvent.execute();
+          break;
+
+        case DELETE_EVENTS:
+          DeleteEvents deleteEvents = new DeleteEvents(
+              calModel, view, parsedCommand);
+          deleteEvents.execute();
+          break;
+
         case GET_EVENTS_RANGE:
           GetEvents getEvents = new GetEvents(
               calModel, view, parsedCommand);

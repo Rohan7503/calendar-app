@@ -200,6 +200,40 @@ public class GuiControllerImpl implements Features {
   }
 
 
+  @Override
+  public void deleteEvent(String subject, String start, String end) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      activeCalendar.deleteEvent(
+          subject,
+          LocalDateTime.parse(start),
+          LocalDateTime.parse(end));
+      view.showMessage("Event Deleted successfully!" + System.lineSeparator());
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void deleteEvents(String subject, String start, boolean deleteWholeSeries) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      activeCalendar.deleteEvents(
+          subject,
+          LocalDateTime.parse(start),
+          deleteWholeSeries);
+      view.showMessage("Events Deleted successfully!" + System.lineSeparator());
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
   //********************** Helper methods *******************************//
 
 

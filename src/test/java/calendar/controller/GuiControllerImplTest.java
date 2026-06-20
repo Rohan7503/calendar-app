@@ -323,6 +323,30 @@ public class GuiControllerImplTest {
     }
 
     @Override
+    public void deleteEvent(String subject, LocalDateTime start, LocalDateTime end)
+        throws IllegalArgumentException {
+      log.append("delete subject=")
+          .append(subject + " ")
+          .append(", start=")
+          .append(start + " ")
+          .append(", end=")
+          .append(end + " ")
+          .append(System.lineSeparator());
+    }
+
+    @Override
+    public void deleteEvents(String subject, LocalDateTime start, boolean deleteWholeSeries)
+        throws IllegalArgumentException {
+      log.append("delete subject=")
+          .append(subject + " ")
+          .append(", start=")
+          .append(start + " ")
+          .append(", deleteWholeSeries=")
+          .append(deleteWholeSeries + " ")
+          .append(System.lineSeparator());
+    }
+
+    @Override
     public Event findEvent(String subject, LocalDateTime start, LocalDateTime end)
         throws IllegalArgumentException {
       return null;

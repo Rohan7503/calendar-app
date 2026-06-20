@@ -118,6 +118,21 @@ public class CalModelImpl implements CalModelInterface {
   }
 
   @Override
+  public void deleteEvent(String subject, LocalDateTime start, LocalDateTime end)
+      throws IllegalArgumentException {
+    Event target = findUniqueEvent(subject, start, end);
+    this.events.remove(target);
+  }
+
+  @Override
+  public void deleteEvents(String subject, LocalDateTime start, boolean deleteWholeSeries)
+      throws IllegalArgumentException {
+    Event base = findUniqueEvent(subject, start, null);
+    List<Event> toDelete = getSeriesEventsToEdit(base, deleteWholeSeries);
+    this.events.removeAll(toDelete);
+  }
+
+  @Override
   public List<Event> getEventsInRange(LocalDateTime start, LocalDateTime end) {
     if (start == null || end == null) {
       throw new IllegalArgumentException("Start and end date/time cannot be null.");

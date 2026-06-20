@@ -80,6 +80,32 @@ public interface CalModelInterface {
                   boolean editWholeSeries) throws IllegalArgumentException;
 
   /**
+   * Deletes a single event identified by its subject and exact time range.
+   *
+   * @param subject the subject of the event to delete
+   * @param start   the start date and time of the event
+   * @param end     the end date and time of the event
+   * @throws IllegalArgumentException if no event or multiple events match
+   */
+  void deleteEvent(String subject, LocalDateTime start, LocalDateTime end)
+      throws IllegalArgumentException;
+
+  /**
+   * Deletes one or more events identified by subject and start time.
+   * If the matched event is part of a series, either the entire series or only this event
+   * and the events after it (inclusive) are deleted, depending on {@code deleteWholeSeries}.
+   * If the matched event is not part of a series, only that event is deleted.
+   *
+   * @param subject           the subject of the event(s) to delete
+   * @param start             the start date and time of the matched event
+   * @param deleteWholeSeries if true, deletes all events in the series; otherwise deletes this
+   *                          event and all later events in the series
+   * @throws IllegalArgumentException if no matching event is found
+   */
+  void deleteEvents(String subject, LocalDateTime start, boolean deleteWholeSeries)
+      throws IllegalArgumentException;
+
+  /**
    * Retrieves all events that occur within the specified date-time range sorted by start date/time.
    *
    * @param start the beginning of the range (inclusive)

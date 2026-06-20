@@ -719,6 +719,50 @@ public class MultiCalControllerImplTest {
   }
 
   @Test
+  public void testDeleteSingleEventViaCli() {
+    MultiCalModelInterface model = new MultiCalModelImpl();
+    model.createCalendar("C1", ZoneId.of("America/New_York"));
+
+    input = "use calendar --name C1"
+        + System.lineSeparator()
+        + "create event Gym from 2025-10-27T08:00 to 2025-10-27T09:00"
+        + System.lineSeparator()
+        + "delete event Gym from 2025-10-27T08:00 to 2025-10-27T09:00"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(model, mockView, inStream);
+    controller.runInteractive();
+
+    String output = ((MockView) mockView).getLogs();
+    assertTrue(output.contains("Event Deleted successfully!"));
+    model.useCalendar("C1");
+    assertTrue(model.getActiveCalendar().getAllEvents().isEmpty());
+  }
+
+  @Test
+  public void testDeleteSeriesViaCli() {
+    MultiCalModelInterface model = new MultiCalModelImpl();
+    model.createCalendar("C1", ZoneId.of("America/New_York"));
+
+    input = "use calendar --name C1"
+        + System.lineSeparator()
+        + "create event Class from 2025-11-03T09:00 to 2025-11-03T10:00 repeats MWF for 5 times"
+        + System.lineSeparator()
+        + "delete series Class from 2025-11-03T09:00"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(model, mockView, inStream);
+    controller.runInteractive();
+
+    String output = ((MockView) mockView).getLogs();
+    assertTrue(output.contains("Events Deleted successfully!"));
+    model.useCalendar("C1");
+    assertTrue(model.getActiveCalendar().getAllEvents().isEmpty());
+  }
+
+  @Test
   public void testExportToCsvAndValidate() throws IOException {
     Event event1 = Event.getBuilder()
         .subject("Gym")
