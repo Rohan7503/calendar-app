@@ -6,11 +6,14 @@ import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiImpl;
 import calendar.view.CalGuiInterface;
 import calendar.view.CalViewInterface;
+import calendar.view.CalendarSummary;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
- * Implementation of the ICalController interface.
+ * Implementation of the {@link CalControllerInterface}.
  * This class is responsible for coordinating the flow of the calendar application.
  * It receives input from the user (either interactively or headless), interprets commands
  * via the CommandParser, and calls the appropriate methods in the model and view.
@@ -126,10 +129,23 @@ public class CalControllerImpl implements CalControllerInterface {
     guiView.addFeatures(guiController);
 
     ZoneId systemZone = ZoneId.systemDefault();
-    calModel.createCalendar("Default", systemZone);
-    calModel.useCalendar("Default");
+    try {
+      new CalendarStore().load(calModel, CalendarStore.defaultPath());
+    } catch (RuntimeException e) {
+      view.displayError("Could not load saved calendars; starting fresh.");
+    }
+    if (calModel.listCalendars().isEmpty()) {
+      calModel.createCalendar("Default", systemZone);
+      calModel.useCalendar("Default");
+    } else if (calModel.getActiveCalendarName() == null) {
+      calModel.useCalendar(calModel.listCalendars().get(0));
+    }
 
-    guiView.showCalendars(calModel.listCalendars(), "Default");
+    List<CalendarSummary> summaries = new ArrayList<>();
+    for (String calName : calModel.listCalendars()) {
+      summaries.add(new CalendarSummary(calName, calModel.getTimezone(calName).getId()));
+    }
+    guiView.showCalendars(summaries, calModel.getActiveCalendarName());
     guiView.showGui();
   }
 
@@ -176,6 +192,18 @@ public class CalControllerImpl implements CalControllerInterface {
           EditEvent editEvent = new EditEvent(
               calModel, view, parsedCommand);
           editEvent.execute();
+          break;
+
+        case DELETE_EVENT:
+          DeleteEvent deleteEvent = new DeleteEvent(
+              calModel, view, parsedCommand);
+          deleteEvent.execute();
+          break;
+
+        case DELETE_EVENTS:
+          DeleteEvents deleteEvents = new DeleteEvents(
+              calModel, view, parsedCommand);
+          deleteEvents.execute();
           break;
 
         case GET_EVENTS_RANGE:

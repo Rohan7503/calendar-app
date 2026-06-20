@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -89,8 +88,7 @@ public class Export {
         LocalDateTime start = e.getStart();
         LocalDateTime end = e.getEnd();
 
-        boolean isAllDay = start.toLocalTime().equals(LocalTime.of(8, 0))
-            && end.toLocalTime().equals(LocalTime.of(17, 0));
+        boolean isAllDay = e.isAllDay();
 
         DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("hh:mm a");
@@ -136,8 +134,7 @@ public class Export {
 
         LocalDateTime start = e.getStart();
         LocalDateTime end = e.getEnd();
-        boolean isAllDay = start.toLocalTime().equals(LocalTime.of(8, 0))
-            && end.toLocalTime().equals(LocalTime.of(17, 0));
+        boolean isAllDay = e.isAllDay();
         if (isAllDay) {
           writer.println("DTSTART;VALUE=DATE:" + start.toLocalDate().format(dateFmt));
           writer.println("DTEND;VALUE=DATE:" + end.toLocalDate().plusDays(1).format(dateFmt));

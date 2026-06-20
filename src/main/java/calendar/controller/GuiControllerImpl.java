@@ -4,11 +4,15 @@ import calendar.model.Event;
 import calendar.model.MultiCalModelInterface;
 import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiInterface;
+import calendar.view.CalViewInterface;
+import calendar.view.CalendarSummary;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -17,6 +21,9 @@ import java.util.List;
  * will be called by a view using this controller.
  */
 public class GuiControllerImpl implements Features {
+  private static final LocalTime ALL_DAY_START = LocalTime.of(8, 0);
+  private static final LocalTime ALL_DAY_END = LocalTime.of(17, 0);
+
   private final MultiCalModelInterface model;
   private final CalGuiInterface view;
   private SingleCalModelInterface activeCalendar;
@@ -39,9 +46,8 @@ public class GuiControllerImpl implements Features {
       ZoneId zoneId = ZoneId.of(timezone);
       model.createCalendar(name, zoneId);
       model.useCalendar(name);
-      List<String> calNames = model.listCalendars();
       view.showMessage("Successfully created calendar - " + name);
-      view.showCalendars(calNames, name);
+      refreshCalendars();
       view.refreshEvents();
     } catch (DateTimeException e) {
       view.showError("Invalid time zone");
@@ -55,8 +61,7 @@ public class GuiControllerImpl implements Features {
     try {
       model.useCalendar(name);
       activeCalendar = model.getActiveCalendar();
-      List<String> calNames = model.listCalendars();
-      view.showCalendars(calNames, name);
+      refreshCalendars();
       view.refreshEvents();
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
@@ -90,6 +95,27 @@ public class GuiControllerImpl implements Features {
       view.showError(e.getMessage());
     } catch (DateTimeException e) {
       view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void createAllDayEvent(String subject, String date) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      LocalDate day = LocalDate.parse(date);
+      Event event = Event.getBuilder()
+          .subject(subject)
+          .start(day.atTime(ALL_DAY_START))
+          .end(day.atTime(ALL_DAY_END))
+          .allDay(true)
+          .build();
+      activeCalendar.addEvent(event);
+      view.showMessage("Event Created successfully!" + System.lineSeparator());
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date");
     }
   }
 
@@ -176,7 +202,160 @@ public class GuiControllerImpl implements Features {
   }
 
 
+  @Override
+  public void deleteEvent(String subject, String start, String end) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      activeCalendar.deleteEvent(
+          subject,
+          LocalDateTime.parse(start),
+          LocalDateTime.parse(end));
+      view.showMessage("Event Deleted successfully!" + System.lineSeparator());
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void deleteEvents(String subject, String start, boolean deleteWholeSeries) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      activeCalendar.deleteEvents(
+          subject,
+          LocalDateTime.parse(start),
+          deleteWholeSeries);
+      view.showMessage("Events Deleted successfully!" + System.lineSeparator());
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void editCalendar(String name, String property, String newValue) {
+    try {
+      model.editCalendar(name, property, newValue);
+      view.showMessage("Calendar updated successfully");
+      refreshCalendars();
+      view.refreshEvents();
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    }
+  }
+
+  /**
+   * Rebuilds the calendar list shown in the sidebar from the model, including each calendar's
+   * timezone, and highlights whichever calendar the model reports as active. Robust across
+   * renames and timezone edits because the active name is read from the model.
+   */
+  private void refreshCalendars() {
+    List<CalendarSummary> summaries = new ArrayList<>();
+    for (String calName : model.listCalendars()) {
+      summaries.add(new CalendarSummary(calName, model.getTimezone(calName).getId()));
+    }
+    view.showCalendars(summaries, model.getActiveCalendarName());
+  }
+
+  @Override
+  public void exportCalendar(String path) {
+    ParsedCommand command = new ParsedCommand(CommandType.EXPORT,
+        Collections.singletonMap("path", path));
+    new Export(model, new GuiViewAdapter(), command).execute();
+  }
+
+  @Override
+  public void copyEvents(String startDate, String endDate, String targetCalendar,
+                         String targetStartDate) {
+    try {
+      model.copyEventsBetween(LocalDate.parse(startDate), LocalDate.parse(endDate),
+          targetCalendar, LocalDate.parse(targetStartDate));
+      view.showMessage("Events copied successfully");
+      view.refreshEvents();
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date");
+    }
+  }
+
+  @Override
+  public void showStatus(String dateTime) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      String status = activeCalendar.checkAvailability(LocalDateTime.parse(dateTime));
+      view.showMessage("Status: " + status);
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void requestEventsInRange(String start, String end) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      List<Event> events = activeCalendar.getEventsInRange(
+          LocalDateTime.parse(start), LocalDateTime.parse(end));
+      view.showEventsInRange("Events from " + start + " to " + end, events);
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
+  @Override
+  public void persist() {
+    try {
+      new CalendarStore().save(model, CalendarStore.defaultPath());
+    } catch (RuntimeException e) {
+      // Best-effort save on close; ignore storage failures.
+    }
+  }
+
+  @Override
+  public void requestMonthView(String startDate, String endDate) {
+    try {
+      activeCalendar = model.getActiveCalendar();
+      List<Event> events = activeCalendar.getEventsInRange(
+          LocalDateTime.parse(startDate), LocalDateTime.parse(endDate));
+      view.showMonthEvents(events);
+    } catch (IllegalArgumentException e) {
+      view.showError(e.getMessage());
+    } catch (DateTimeException e) {
+      view.showError("Invalid date-time");
+    }
+  }
+
   //********************** Helper methods *******************************//
+
+  /**
+   * Adapts the GUI view to the {@link CalViewInterface} expected by the shared {@link Export}
+   * command, forwarding messages and errors to the GUI's feedback. {@code displayEvents} is unused
+   * by the export path.
+   */
+  private final class GuiViewAdapter implements CalViewInterface {
+    @Override
+    public void displayMessage(String msg) {
+      view.showMessage(msg);
+    }
+
+    @Override
+    public void displayError(String msg) {
+      view.showError(msg);
+    }
+
+    @Override
+    public void displayEvents(List<Event> events) {
+      // Not used by export; range results are rendered via showEventsInRange.
+    }
+  }
 
 
   /**

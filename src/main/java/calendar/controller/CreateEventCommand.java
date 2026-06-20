@@ -47,13 +47,9 @@ class CreateEventCommand {
    *
    */
   void execute() throws IllegalArgumentException {
-    try {
-      SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
-      activeCalendar.addEvent(createEvents(command));
-      calView.displayMessage("Event Created successfully!" + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
+    activeCalendar.addEvent(createEvents(command));
+    calView.displayMessage("Event Created successfully!" + System.lineSeparator());
   }
 
   /**
@@ -68,7 +64,8 @@ class CreateEventCommand {
   private Event createEvents(ParsedCommand parsedCommand) throws IllegalArgumentException {
     LocalDateTime start;
     LocalDateTime end;
-    if (!parsedCommand.getArguments().containsKey("start")) {
+    boolean allDay = !parsedCommand.getArguments().containsKey("start");
+    if (allDay) {
       List<LocalDateTime> dateTimeList = localeAllDayConverter(parsedCommand);
       start = dateTimeList.get(0);
       end = dateTimeList.get(1);
@@ -80,6 +77,7 @@ class CreateEventCommand {
         .start(start)
         .end(end)
         .subject(parsedCommand.getArguments().get("subject"))
+        .allDay(allDay)
         .build();
   }
 

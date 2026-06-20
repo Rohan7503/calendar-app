@@ -1,0 +1,16 @@
+create calendar --name Work --timezone America/New_York
+use calendar --name Work
+create event Standup from 2025-06-23T09:00 to 2025-06-23T09:15 repeats MTWRF for 10 times
+create event Sprint-Planning from 2025-06-24T10:00 to 2025-06-24T11:30
+create event Manager-1on1 from 2025-06-25T15:00 to 2025-06-25T15:30
+create event Product-Demo from 2025-06-27T14:00 to 2025-06-27T15:00
+create calendar --name Personal --timezone America/Los_Angeles
+use calendar --name Personal
+create event Gym on 2025-06-23
+create event Dentist from 2025-06-26T08:30 to 2025-06-26T09:15
+create event Road-Trip from 2025-06-28T08:00 to 2025-06-29T20:00
+use calendar --name Work
+print events from 2025-06-23T00:00 to 2025-06-27T23:59
+show status on 2025-06-24T10:30
+export cal work_demo.csv
+exit

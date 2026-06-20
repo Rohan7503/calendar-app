@@ -3,12 +3,11 @@ package calendar.controller;
 import static org.junit.Assert.assertTrue;
 
 import calendar.model.Event;
-import calendar.model.MultiCalModelImpl;
 import calendar.model.MultiCalModelInterface;
 import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiInterface;
 import calendar.view.CalViewInterface;
-import java.io.StringReader;
+import calendar.view.CalendarSummary;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -104,6 +103,21 @@ public class GuiControllerImplTest {
     @Override
     public List<String> listCalendars() {
       return List.of(calendars.keySet().toArray(new String[0]));
+    }
+
+    @Override
+    public String getActiveCalendarName() {
+      return activeCalendarName;
+    }
+
+    @Override
+    public ZoneId getTimezone(String calName) {
+      return ZoneId.of("America/New_York");
+    }
+
+    @Override
+    public SingleMockModel getCalendar(String calName) {
+      return calendars.get(calName);
     }
 
     @Override
@@ -323,6 +337,30 @@ public class GuiControllerImplTest {
     }
 
     @Override
+    public void deleteEvent(String subject, LocalDateTime start, LocalDateTime end)
+        throws IllegalArgumentException {
+      log.append("delete subject=")
+          .append(subject + " ")
+          .append(", start=")
+          .append(start + " ")
+          .append(", end=")
+          .append(end + " ")
+          .append(System.lineSeparator());
+    }
+
+    @Override
+    public void deleteEvents(String subject, LocalDateTime start, boolean deleteWholeSeries)
+        throws IllegalArgumentException {
+      log.append("delete subject=")
+          .append(subject + " ")
+          .append(", start=")
+          .append(start + " ")
+          .append(", deleteWholeSeries=")
+          .append(deleteWholeSeries + " ")
+          .append(System.lineSeparator());
+    }
+
+    @Override
     public Event findEvent(String subject, LocalDateTime start, LocalDateTime end)
         throws IllegalArgumentException {
       return null;
@@ -360,10 +398,10 @@ public class GuiControllerImplTest {
     }
 
     @Override
-    public void showCalendars(List<String> calendarNames, String activeCalendar) {
+    public void showCalendars(List<CalendarSummary> calendars, String activeCalendar) {
       log.append("Calendars : ");
-      for (String cal : calendarNames) {
-        log.append(cal)
+      for (CalendarSummary cal : calendars) {
+        log.append(cal.name())
             .append(System.lineSeparator());
       }
       log.append("active cal : ")
@@ -383,6 +421,19 @@ public class GuiControllerImplTest {
             .append(event.getEnd())
             .append(System.lineSeparator());
       }
+    }
+
+    @Override
+    public void showMonthEvents(List<Event> events) {
+      log.append("Month events : ").append(events.size())
+          .append(System.lineSeparator());
+    }
+
+    @Override
+    public void showEventsInRange(String title, List<Event> events) {
+      log.append(title)
+          .append(" count=").append(events.size())
+          .append(System.lineSeparator());
     }
 
     @Override
@@ -433,6 +484,90 @@ public class GuiControllerImplTest {
         + "timeZone: America/Los_Angeles" + System.lineSeparator()
         + "calToUse: work" + System.lineSeparator()
         + "activeCalendar: work"));
+  }
+
+  @Test
+  public void testCreateAllDayEventCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.createAllDayEvent("Holiday", "2025-10-27");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Event Created successfully!"));
+    assertTrue(modelLogs.contains("subject=Holiday"));
+  }
+
+  @Test
+  public void testDeleteEventCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.deleteEvent("Gym", "2025-10-27T08:00", "2025-10-27T09:00");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Event Deleted successfully!"));
+    assertTrue(modelLogs.contains("delete subject=Gym"));
+  }
+
+  @Test
+  public void testDeleteEventsCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.deleteEvents("Class", "2025-11-03T09:00", true);
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Events Deleted successfully!"));
+    assertTrue(modelLogs.contains("delete subject=Class"));
+    assertTrue(modelLogs.contains("deleteWholeSeries=true"));
+  }
+
+  @Test
+  public void testEditCalendarCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.editCalendar("work", "name", "office");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Calendar updated successfully"));
+    assertTrue(modelLogs.contains("newValue: office"));
+  }
+
+  @Test
+  public void testShowStatusCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.showStatus("2025-10-27T09:00");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Status: "));
+  }
+
+  @Test
+  public void testCopyEventsCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.copyEvents("2025-10-27", "2025-10-28", "work", "2025-11-01");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Events copied successfully"));
+    assertTrue(modelLogs.contains("targetStartDate: 2025-11-01"));
+  }
+
+  @Test
+  public void testRequestEventsInRangeCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.requestEventsInRange("2025-10-27T00:00", "2025-10-28T00:00");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Events from 2025-10-27T00:00 to 2025-10-28T00:00"));
+    assertTrue(viewLogs.contains("count=0"));
+  }
+
+  @Test
+  public void testRequestMonthViewCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.requestMonthView("2025-10-01T00:00", "2025-10-31T23:59");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Month events : "));
+  }
+
+  @Test
+  public void testExportCalendarNoEventsCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.exportCalendar("nonexistent.csv");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("No events found."));
   }
 
   @Test

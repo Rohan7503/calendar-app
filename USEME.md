@@ -75,46 +75,101 @@ Executes all commands in `sample_ommands.txt` and displays the output in the ter
 
 ## How to use the GUI
 
-The GUI is divided into 4 panes, as shown below:  
+The window has a top action toolbar, a calendars sidebar (left), the month surface (center), a day
+detail panel (right), a **Tools** menu, and a status strip along the bottom for feedback. (The
+screenshots below predate the latest visual refresh and are kept for general orientation.)
 
 ![Image of the GUI](res/gui_images/panes.png)
 
-### Calendars Pane:
-- The left pane displays the available calendars, the selected (active) one is highlighted in orange.  
-- By default, when the application is run, a default calendar is created and made active.
+### Calendars sidebar (left):
+- Lists the available calendars; the active one is highlighted.
+- By default, when the application is run, a "Default" calendar is created and made active.
+- Selecting a calendar makes it active and updates the month surface and day panel.
 ![Image of the calendars pane](res/gui_images/lpane.png)
 
-### Day Events Pane:
-- The right pane displays all events scheduled **for the selected day** (highlighted in yellow as shown below).
-- Each of the events also have an edit button, which allows you to edit that particular event alone
+### Day detail panel (right):
+- Shows the events for the selected day as cards, each with the subject, time (or "All day"),
+  location/status when present, and inline **Edit** and **Delete** actions.
+- **Delete** asks for confirmation before removing that single event.
+- This panel is also used to present the results of a **View Date Range** query.
 ![Image of the day events pane](res/gui_images/rpane.png)
 
-### Month Grid Pane:
-- The buttons to the left and right of the month name at the top of this pane can be used to navigate to different
-month views.
-- Selected day is highlighted in yellow. Image is shown above
+### Month surface (center):
+- A six-week month grid. Use **<** / **>** to change month and **Today** to jump back to the
+  current month and select today.
+- Days with events show event chips (with a "+N more" indicator when there are several).
+- Today is outlined, the selected day is highlighted, weekends are tinted, and days outside the
+  displayed month are muted. Clicking a day shows its events in the day panel.
 
-### Top Action Buttons Pane
-- This pane contains the main action buttons for the calendar application.
-- Clicking on any of the action buttons opens a dialog box (as shown below),
-where the date fields are autopopulated if any day was selected on the month grid
-before clicking on the action buttons.
-- Event times are defaulted to the "all-day" event hours (8am - 5pm), but can be changed
-in the dialog box
+### Top action toolbar:
+- Holds the main actions: Create Calendar, Create Event, Create Series (Count),
+  Create Series (Until Date), Edit Multiple Events, and Delete Events.
+- The create/edit dialogs are forms with **date and time pickers** and inline validation, so dates
+  and times no longer need to be typed by hand. Fields default to the selected day (or today).
+- The Create Event dialog has an **All-day event** checkbox; when ticked, the time fields are
+  ignored and a first-class all-day event is created.
+- **Edit Multiple Events** and **Delete Events** let you apply a change to an entire series, or to
+  an event and all later events in its series, using the scope option in the dialog.
 ![Image of the create event series until date dialog box](res/gui_images/tpane.png)
+
+### Status strip (bottom):
+- Routine successes and one-shot results (such as a busy/available check) appear briefly here
+  rather than in a pop-up. Validation problems and errors are still shown in a dialog.
+
+### Tools Menu
+The **Tools** menu (in the menu bar) provides access to features that are also available in the
+text modes:
+- **Edit Calendar** — rename a calendar or change its timezone.
+- **Export to CSV / Export to ICS** — export the active calendar to a file.
+- **Copy Events** — copy a range of events from the active calendar into another calendar.
+- **Show Status** — check whether you are busy or available at a given date and time.
+- **View Date Range** — list all events of the active calendar within a date/time range.
 
 ### Example flow:
 
 1. Run the application in GUI mode (no arguments).  
 2. A calendar is created and selected: "Default".  
 3. Create another calendar if you want to, or proceed to creating events/event series. Creating a calendar automatically
-sets that calendar as active (as seen by the orange highlight, which would have moved to the created calendar).  
-4. Create an event either by directly clicking one of the create event/series buttons and manually entering the dates
-for the event, or, select the day for which you want to create the event in the month grid, and then click one of the
-create event/series buttons to see the date fields autopopulated. The time fields are defaulted to
-all-day event timings (8am - 5pm).
+sets that calendar as active (the highlight moves to the created calendar).  
+4. Create an event by clicking one of the create event/series buttons and choosing the date and
+time with the pickers. Selecting a day in the month grid first pre-fills the date fields. Tick
+**All-day event** in the Create Event dialog to create an all-day event.
 5. View the events for a day on the right pane.
 6. Edit a particular event if needed, or edit multiple events using the top action pane button.
 7. The edition is reflected in the right pane on the correct day.
 8. Switch to a different calendar if needed by clicking on it.
 9. Close the window to quit the program.
+
+### Month / Week / Day views and navigation:
+- Use the **Month / Week / Day** buttons (top-right of the calendar) or **Ctrl+1 / Ctrl+2 / Ctrl+3**
+  to switch views.
+- Use **<** / **Today** / **>** (or **Ctrl+Left** / **Ctrl+T** / **Ctrl+Right**) to move between
+  periods. The week view shows all-day events above the timed events in each day column.
+
+### Keyboard shortcuts:
+- **Ctrl+N** — create event
+- **Ctrl+T** — go to today
+- **Ctrl+E** — export to CSV
+- **Ctrl+Left / Ctrl+Right** — previous / next period
+- **Ctrl+1 / Ctrl+2 / Ctrl+3** — Month / Week / Day view
+
+### Saving your data:
+- When you close the GUI, your calendars and events are saved to
+  `~/.calendar-app/calendars.dat` and restored automatically the next time you launch the GUI.
+- The interactive and headless text modes do not use this file; they start empty as before.
+
+### Demo walkthrough:
+- For a quick populated demo, run the bundled command file in headless mode:
+  ```bash
+  java -jar build/libs/calendar-1.0.jar --mode headless res/demo_commands.txt
+  ```
+  It creates `Work` and `Personal` calendars with a recurring standup, several meetings, an all-day
+  event, and a multi-day event, prints a range, and exports `work_demo.csv`.
+- For a GUI demo, launch with no arguments and follow the example flow above, then try the
+  **Month/Week/Day** views and the **Tools** menu (export, copy, status, date range).
+
+### Capturing updated screenshots:
+The screenshots in `res/gui_images/` predate the redesign. To refresh them, launch the GUI and
+capture: (1) the full window in Month view with events, (2) the Week and Day views, (3) the
+Create Event dialog with the All-day option, and (4) the sidebar showing multiple calendars. Save
+them into `res/gui_images/` using the existing file names to update this document in place.

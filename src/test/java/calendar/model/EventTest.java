@@ -1,8 +1,10 @@
 package calendar.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.time.LocalDateTime;
@@ -171,6 +173,50 @@ public class EventTest {
         .end(LocalDateTime.of(2020, Month.JANUARY, 1, 1, 0, 0))
         .build();
     assertEquals(this.event, event2);
+  }
+
+  @Test
+  public void testAllDayDefaultsFalse() {
+    assertFalse(this.event.isAllDay());
+  }
+
+  @Test
+  public void testAllDayFlagSetAndPreservedThroughToBuilder() {
+    Event allDay = Event.getBuilder()
+        .subject("Holiday")
+        .start(LocalDateTime.of(2020, Month.JANUARY, 1, 8, 0))
+        .end(LocalDateTime.of(2020, Month.JANUARY, 1, 17, 0))
+        .allDay(true)
+        .build();
+    assertTrue(allDay.isAllDay());
+
+    Event copy = allDay.toBuilder().location(EventLocation.ONLINE).build();
+    assertTrue(copy.isAllDay());
+  }
+
+  @Test
+  public void testTimedEventAtAllDayHoursIsNotAllDay() {
+    Event timed = Event.getBuilder()
+        .subject("Workday")
+        .start(LocalDateTime.of(2020, Month.JANUARY, 1, 8, 0))
+        .end(LocalDateTime.of(2020, Month.JANUARY, 1, 17, 0))
+        .build();
+    assertFalse(timed.isAllDay());
+  }
+
+  @Test
+  public void testEqualityIgnoresMetadataAndAllDayFlag() {
+    Event timed = Event.getBuilder()
+        .subject("Gym")
+        .start(LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0))
+        .end(LocalDateTime.of(2020, Month.JANUARY, 1, 1, 0, 0))
+        .location(EventLocation.PHYSICAL)
+        .status(EventStatus.PRIVATE)
+        .description("Leg day")
+        .allDay(true)
+        .build();
+    assertEquals(this.event, timed);
+    assertEquals(this.event.hashCode(), timed.hashCode());
   }
 
   @Test

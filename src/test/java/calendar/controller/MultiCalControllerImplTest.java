@@ -127,6 +127,21 @@ public class MultiCalControllerImplTest {
     }
 
     @Override
+    public String getActiveCalendarName() {
+      return activeCalendarName;
+    }
+
+    @Override
+    public ZoneId getTimezone(String calName) {
+      return ZoneId.of("America/New_York");
+    }
+
+    @Override
+    public SingleCalModelInterface getCalendar(String calName) {
+      return calendars.get(calName);
+    }
+
+    @Override
     public void copyEvent(String eventName, LocalDateTime sourceStartTime, String targetCalendar,
                           LocalDateTime targetStartTime)
         throws IllegalArgumentException, IllegalStateException {
@@ -719,6 +734,50 @@ public class MultiCalControllerImplTest {
   }
 
   @Test
+  public void testDeleteSingleEventViaCli() {
+    MultiCalModelInterface model = new MultiCalModelImpl();
+    model.createCalendar("C1", ZoneId.of("America/New_York"));
+
+    input = "use calendar --name C1"
+        + System.lineSeparator()
+        + "create event Gym from 2025-10-27T08:00 to 2025-10-27T09:00"
+        + System.lineSeparator()
+        + "delete event Gym from 2025-10-27T08:00 to 2025-10-27T09:00"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(model, mockView, inStream);
+    controller.runInteractive();
+
+    String output = ((MockView) mockView).getLogs();
+    assertTrue(output.contains("Event Deleted successfully!"));
+    model.useCalendar("C1");
+    assertTrue(model.getActiveCalendar().getAllEvents().isEmpty());
+  }
+
+  @Test
+  public void testDeleteSeriesViaCli() {
+    MultiCalModelInterface model = new MultiCalModelImpl();
+    model.createCalendar("C1", ZoneId.of("America/New_York"));
+
+    input = "use calendar --name C1"
+        + System.lineSeparator()
+        + "create event Class from 2025-11-03T09:00 to 2025-11-03T10:00 repeats MWF for 5 times"
+        + System.lineSeparator()
+        + "delete series Class from 2025-11-03T09:00"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(model, mockView, inStream);
+    controller.runInteractive();
+
+    String output = ((MockView) mockView).getLogs();
+    assertTrue(output.contains("Events Deleted successfully!"));
+    model.useCalendar("C1");
+    assertTrue(model.getActiveCalendar().getAllEvents().isEmpty());
+  }
+
+  @Test
   public void testExportToCsvAndValidate() throws IOException {
     Event event1 = Event.getBuilder()
         .subject("Gym")
@@ -727,6 +786,7 @@ public class MultiCalControllerImplTest {
         .location(EventLocation.ONLINE)
         .description("\"Gym\" for an hour.")
         .status(EventStatus.PRIVATE)
+        .allDay(true)
         .build();
 
     MultiCalModelInterface model = new MultiCalModelImpl();
@@ -758,6 +818,42 @@ public class MultiCalControllerImplTest {
       assertEquals("True", fields[5]);
       assertEquals("\"\"\"Gym\"\" for an hour.\"", fields[6]);
       assertEquals("True", fields[8]);
+    } catch (IOException e) {
+      fail();
+    } finally {
+      cleanupFiles();
+    }
+  }
+
+  @Test
+  public void testCliAllDayEventExportsAsAllDayButTimedEventDoesNot() {
+    MultiCalModelInterface model = new MultiCalModelImpl();
+    model.createCalendar("C1", ZoneId.of("America/New_York"));
+
+    input = "use calendar --name C1"
+        + System.lineSeparator()
+        + "create event Holiday on 2025-10-27"
+        + System.lineSeparator()
+        + "create event Meeting from 2025-10-28T08:00 to 2025-10-28T17:00"
+        + System.lineSeparator()
+        + "export cal data_export_sample.csv"
+        + System.lineSeparator()
+        + "exit";
+    inStream = new StringReader(input);
+    controller = new CalControllerImpl(model, mockView, inStream);
+    controller.runInteractive();
+
+    try (BufferedReader br = new BufferedReader(new FileReader("data_export_sample.csv"))) {
+      br.readLine();
+      String[] allDayRow = br.readLine().split(",");
+      assertEquals("Holiday", allDayRow[0]);
+      assertEquals("", allDayRow[2]);
+      assertEquals("True", allDayRow[5]);
+
+      String[] timedRow = br.readLine().split(",");
+      assertEquals("Meeting", timedRow[0]);
+      assertEquals("08:00 AM", timedRow[2]);
+      assertEquals("False", timedRow[5]);
     } catch (IOException e) {
       fail();
     } finally {
@@ -909,6 +1005,7 @@ public class MultiCalControllerImplTest {
         .location(EventLocation.ONLINE)
         .description("\"Gym\" for an hour.")
         .status(EventStatus.PRIVATE)
+        .allDay(true)
         .build();
 
     MultiCalModelInterface model = new MultiCalModelImpl();

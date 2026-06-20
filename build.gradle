@@ -23,7 +23,6 @@ sourceSets {
 
 dependencies {
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.testng:testng:7.1.0'
 }
 
 jar {
@@ -49,7 +48,7 @@ jacocoTestReport {
 test {
     useJUnit()
     finalizedBy tasks.jacocoTestReport
-    ignoreFailures = true
+    ignoreFailures = false
 }
 
 application {

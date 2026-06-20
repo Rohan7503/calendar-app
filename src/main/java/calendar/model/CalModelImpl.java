@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of the ICalModel interface.
+ * Implementation of the {@link CalModelInterface}.
  * Manages the storage, retrieval, and modification of Event objects.
  * Handles adding individual events, creating event series, editing events,
  * and retrieving events based on queries.
@@ -118,6 +118,21 @@ public class CalModelImpl implements CalModelInterface {
   }
 
   @Override
+  public void deleteEvent(String subject, LocalDateTime start, LocalDateTime end)
+      throws IllegalArgumentException {
+    Event target = findUniqueEvent(subject, start, end);
+    this.events.remove(target);
+  }
+
+  @Override
+  public void deleteEvents(String subject, LocalDateTime start, boolean deleteWholeSeries)
+      throws IllegalArgumentException {
+    Event base = findUniqueEvent(subject, start, null);
+    List<Event> toDelete = getSeriesEventsToEdit(base, deleteWholeSeries);
+    this.events.removeAll(toDelete);
+  }
+
+  @Override
   public List<Event> getEventsInRange(LocalDateTime start, LocalDateTime end) {
     if (start == null || end == null) {
       throw new IllegalArgumentException("Start and end date/time cannot be null.");
@@ -136,6 +151,29 @@ public class CalModelImpl implements CalModelInterface {
     return new ArrayList<>(this.events.stream()
         .sorted(Comparator.comparing(Event::getStart))
         .collect(Collectors.toList()));
+  }
+
+  /**
+   * Atomically replaces all events in this calendar with the given list.
+   * The replacement is validated first: if the new list would contain two events that share
+   * the same identity (subject, start, end), the operation is aborted and the calendar is left
+   * unchanged. This makes bulk rewrites such as timezone conversion transactional — either every
+   * event is replaced or none is.
+   *
+   * @param newEvents the events to replace the current contents with
+   * @throws IllegalArgumentException if the new list contains duplicate event identities
+   */
+  protected void replaceAllEvents(List<Event> newEvents) throws IllegalArgumentException {
+    for (int i = 0; i < newEvents.size(); i++) {
+      for (int j = i + 1; j < newEvents.size(); j++) {
+        if (newEvents.get(i).equals(newEvents.get(j))) {
+          throw new IllegalArgumentException(
+              "Operation would create duplicate events; aborted.");
+        }
+      }
+    }
+    this.events.clear();
+    this.events.addAll(newEvents);
   }
 
   @Override

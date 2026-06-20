@@ -87,6 +87,21 @@ public class MultiCalModelImpl implements MultiCalModelInterface {
   }
 
   @Override
+  public String getActiveCalendarName() {
+    return activeCalendarName;
+  }
+
+  @Override
+  public ZoneId getTimezone(String calName) throws IllegalArgumentException {
+    return findUniqueCalendar(calName).getTimezone();
+  }
+
+  @Override
+  public SingleCalModelInterface getCalendar(String calName) throws IllegalArgumentException {
+    return findUniqueCalendar(calName);
+  }
+
+  @Override
   public void copyEvent(String eventName, LocalDateTime sourceStartTime, String targetCalendar,
                         LocalDateTime targetStartTime)
       throws IllegalArgumentException, IllegalStateException {

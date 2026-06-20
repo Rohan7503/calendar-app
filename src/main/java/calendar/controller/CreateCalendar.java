@@ -42,8 +42,6 @@ class CreateCalendar {
       calView.displayMessage("Calendar created successfully" + System.lineSeparator());
     } catch (DateTimeException e) {
       throw new IllegalArgumentException("Invalid Zone");
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
     }
   }
 }

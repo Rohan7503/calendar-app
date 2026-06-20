@@ -2,6 +2,8 @@ package calendar.model;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class is an implementation of the {@code SingleCalModelInterface}. It represents a single
@@ -49,14 +51,15 @@ class SingleCalModelImpl extends CalModelImpl implements SingleCalModelInterface
       return;
     }
     ZoneId oldZone = this.timezone;
-    this.timezone = newTimezone;
+    List<Event> converted = new ArrayList<>();
     for (Event e : this.getAllEvents()) {
-      LocalDateTime newStart = e.getStart().atZone(oldZone).withZoneSameInstant(newTimezone)
-          .toLocalDateTime();
-      LocalDateTime newEnd = e.getEnd().atZone(oldZone).withZoneSameInstant(newTimezone)
-          .toLocalDateTime();
-      this.editEvent("start", e.getSubject(), e.getStart(), e.getEnd(), newStart.toString());
-      this.editEvent("end", e.getSubject(), newStart, e.getEnd(), newEnd.toString());
+      LocalDateTime newStart = e.getStart().atZone(oldZone)
+          .withZoneSameInstant(newTimezone).toLocalDateTime();
+      LocalDateTime newEnd = e.getEnd().atZone(oldZone)
+          .withZoneSameInstant(newTimezone).toLocalDateTime();
+      converted.add(e.toBuilder().start(newStart).end(newEnd).build());
     }
+    this.replaceAllEvents(converted);
+    this.timezone = newTimezone;
   }
 }

@@ -26,10 +26,10 @@ public interface CalGuiInterface {
   /**
    * Display the list of calendars and highlight the currently active one.
    *
-   * @param calendarNames  list of all calendar names
+   * @param calendars      summaries (name and timezone) of all calendars
    * @param activeCalendar name of the currently active calendar
    */
-  void showCalendars(List<String> calendarNames, String activeCalendar);
+  void showCalendars(List<CalendarSummary> calendars, String activeCalendar);
 
   /**
    * Display all events scheduled on a selected day.
@@ -38,6 +38,21 @@ public interface CalGuiInterface {
    * @param events list of events for that day
    */
   void showEventsForDay(LocalDate day, List<Event> events);
+
+  /**
+   * Render the given events as indicators on the month grid.
+   *
+   * @param events the events within the currently displayed month
+   */
+  void showMonthEvents(List<Event> events);
+
+  /**
+   * Present the results of a date-range query.
+   *
+   * @param title  a heading describing the range
+   * @param events the events found within the range
+   */
+  void showEventsInRange(String title, List<Event> events);
 
   /**
    * Re-fetch the events to be displayed.

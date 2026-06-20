@@ -46,6 +46,13 @@ class CommandParser implements Parser {
       } else {
         return parseEditEvent(input);
       }
+    } else if (input.matches("^delete(\\s+|$).*")) {
+      if (input.matches("^delete\\s+events(\\s+|$).*")
+          || input.matches("^delete\\s+series(\\s+|$).*")) {
+        return parseDeleteEvents(input);
+      } else {
+        return parseDeleteEvent(input);
+      }
     } else if (input.matches("^print(\\s+|$).*")) {
       return parsePrintEventRange(input);
     } else if (input.matches("^export(\\s+|$).*")) {
@@ -227,6 +234,61 @@ class CommandParser implements Parser {
               + "from <YYYY-MM-DDThh:mm> with <NewPropertyValue>");
     }
     return new ParsedCommand(CommandType.EDIT_EVENTS, args);
+  }
+
+  /**
+   * parses the input string to get arguments for deleting one or more events
+   * (either an entire series or this event and the events after it).
+   *
+   * @param input takes query string.
+   * @return ParsedCommand class.
+   */
+  private ParsedCommand parseDeleteEvents(String input) {
+    Map<String, String> args = new HashMap<>();
+    String regex = "^delete\\s+(events|series)\\s+"
+        + "(\"[^\"]+\"|\\S+)\\s+"
+        + "from\\s+(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2})$";
+
+    Matcher matcher = createMatcher(regex, input);
+    if (matcher.find()) {
+      args.put("subject", matcher.group(2));
+      args.put("start", matcher.group(3));
+      args.put("deleteWholeSeries",
+          String.valueOf(matcher.group(1)).equalsIgnoreCase("series") ? "true" : "false");
+    } else {
+      throw new IllegalArgumentException(
+          "Invalid delete events syntax. Expected Format: "
+              + System.lineSeparator()
+              + "delete events/series <eventSubject> from <YYYY-MM-DDThh:mm>");
+    }
+    return new ParsedCommand(CommandType.DELETE_EVENTS, args);
+  }
+
+  /**
+   * parses the input string to get arguments for deleting a single event
+   * identified by its subject and exact start and end date-time.
+   *
+   * @param input takes query string.
+   * @return ParsedCommand class.
+   */
+  private ParsedCommand parseDeleteEvent(String input) {
+    Map<String, String> args;
+    String regex = "^delete\\s+event\\s+"
+        + "(\"[^\"]+\"|\\S+)\\s+"
+        + "from\\s+(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2})\\s+"
+        + "to\\s+(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2})$";
+
+    Matcher matcher = createMatcher(regex, input);
+    if (matcher.find()) {
+      args = parseArgs(Arrays.asList("subject", "start", "end"), matcher);
+    } else {
+      throw new IllegalArgumentException(
+          "Invalid delete event syntax. Expected Format: "
+              + System.lineSeparator()
+              + "delete event <eventSubject> "
+              + "from <YYYY-MM-DDThh:mm> to <YYYY-MM-DDThh:mm>");
+    }
+    return new ParsedCommand(CommandType.DELETE_EVENT, args);
   }
 
   /**

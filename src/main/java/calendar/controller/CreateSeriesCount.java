@@ -50,16 +50,12 @@ class CreateSeriesCount {
    *                                  or contain unparsable date/time values.
    */
   void execute() throws IllegalArgumentException {
-    try {
-      SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
-      activeCalendar.addEventSeriesForCount(
-          createEvents(command),
-          getNonDateTimeProp(command),
-          count);
-      calView.displayMessage("Series Created successfully!" + System.lineSeparator());
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(e.getMessage());
-    }
+    SingleCalModelInterface activeCalendar = calModel.getActiveCalendar();
+    activeCalendar.addEventSeriesForCount(
+        createEvents(command),
+        getNonDateTimeProp(command),
+        count);
+    calView.displayMessage("Series Created successfully!" + System.lineSeparator());
   }
 
   /**
@@ -74,7 +70,8 @@ class CreateSeriesCount {
     try {
       LocalDateTime start;
       LocalDateTime end;
-      if (!parsedCommand.getArguments().containsKey("start")) {
+      boolean allDay = !parsedCommand.getArguments().containsKey("start");
+      if (allDay) {
         List<LocalDateTime> dateTimeList = localeAllDayConverter(parsedCommand);
         start = dateTimeList.get(0);
         end = dateTimeList.get(1);
@@ -86,6 +83,7 @@ class CreateSeriesCount {
           .start(start)
           .end(end)
           .subject(parsedCommand.getArguments().get("subject"))
+          .allDay(allDay)
           .build();
     } catch (DateTimeException e) {
       throw new IllegalArgumentException("Invalid Date Time");
