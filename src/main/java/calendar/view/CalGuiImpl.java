@@ -37,7 +37,10 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
     super("Calendar App");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    sidebar = new SidebarPanel(name -> features.selectCalendar(name));
+    sidebar = new SidebarPanel(
+        name -> features.selectCalendar(name),
+        () -> dialogs.openCreateCalendar(),
+        name -> dialogs.openEditCalendar(name));
     surface = new CalendarSurfacePanel(
         date -> features.requestEventsForDay(date.toString()),
         this::loadVisibleEvents);
@@ -72,8 +75,8 @@ public class CalGuiImpl extends JFrame implements CalGuiInterface {
   }
 
   @Override
-  public void showCalendars(List<String> calendarNames, String activeCalendar) {
-    sidebar.showCalendars(calendarNames, activeCalendar);
+  public void showCalendars(List<CalendarSummary> calendars, String activeCalendar) {
+    sidebar.showCalendars(calendars, activeCalendar);
   }
 
   @Override

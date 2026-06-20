@@ -54,6 +54,47 @@ public class MultiCalModelImplTest {
   }
 
   @Test
+  public void testGetActiveCalendarName() {
+    assertNull(multiCalModel.getActiveCalendarName());
+    multiCalModel.createCalendar("Work", ZoneId.of("America/New_York"));
+    multiCalModel.useCalendar("Work");
+    assertEquals("Work", multiCalModel.getActiveCalendarName());
+  }
+
+  @Test
+  public void testActiveCalendarNameFollowsRename() {
+    multiCalModel.createCalendar("Work", ZoneId.of("America/New_York"));
+    multiCalModel.useCalendar("Work");
+    multiCalModel.editCalendar("Work", "name", "Office");
+    assertEquals("Office", multiCalModel.getActiveCalendarName());
+    assertTrue(multiCalModel.listCalendars().contains("Office"));
+    assertFalse(multiCalModel.listCalendars().contains("Work"));
+  }
+
+  @Test
+  public void testGetTimezone() {
+    multiCalModel.createCalendar("Work", ZoneId.of("Asia/Kolkata"));
+    assertEquals(ZoneId.of("Asia/Kolkata"), multiCalModel.getTimezone("Work"));
+  }
+
+  @Test
+  public void testGetTimezoneReflectsEdit() {
+    multiCalModel.createCalendar("Work", ZoneId.of("America/New_York"));
+    multiCalModel.editCalendar("Work", "timezone", "Europe/Paris");
+    assertEquals(ZoneId.of("Europe/Paris"), multiCalModel.getTimezone("Work"));
+  }
+
+  @Test
+  public void testGetTimezoneUnknownCalendarThrows() {
+    try {
+      multiCalModel.getTimezone("Missing");
+      fail();
+    } catch (IllegalArgumentException e) {
+      assertEquals("Calendar with this name does not exist.", e.getMessage());
+    }
+  }
+
+  @Test
   public void testCreateCalendar() {
     multiCalModel.createCalendar("Test Calendar 1", ZoneId.of("America/New_York"));
     multiCalModel.createCalendar("Test Calendar 2", ZoneId.of("America/Los_Angeles"));

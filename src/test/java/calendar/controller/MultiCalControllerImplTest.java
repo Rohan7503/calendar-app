@@ -127,6 +127,16 @@ public class MultiCalControllerImplTest {
     }
 
     @Override
+    public String getActiveCalendarName() {
+      return activeCalendarName;
+    }
+
+    @Override
+    public ZoneId getTimezone(String calName) {
+      return ZoneId.of("America/New_York");
+    }
+
+    @Override
     public void copyEvent(String eventName, LocalDateTime sourceStartTime, String targetCalendar,
                           LocalDateTime targetStartTime)
         throws IllegalArgumentException, IllegalStateException {

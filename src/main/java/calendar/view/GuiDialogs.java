@@ -3,14 +3,19 @@ package calendar.view;
 import calendar.controller.Features;
 import calendar.model.Event;
 import calendar.model.EventProperty;
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.io.File;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,11 +25,13 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * Builds and shows the application's input forms and forwards the collected input to the
@@ -61,13 +68,13 @@ class GuiDialogs {
   void openCreateCalendar() {
     JPanel form = FormComponents.form();
     JTextField name = new JTextField(16);
-    JTextField timezone = new JTextField("America/New_York", 16);
+    JComboBox<String> timezone = timezoneCombo(null);
     FormComponents.addRow(form, "Name:", name);
     FormComponents.addRow(form, "Timezone:", timezone);
 
     if (confirm(form, "Create Calendar",
         () -> name.getText().isBlank() ? "Calendar name is required." : null)) {
-      features.createCalendar(name.getText().trim(), timezone.getText().trim());
+      features.createCalendar(name.getText().trim(), selectedText(timezone));
     }
   }
 
@@ -234,37 +241,72 @@ class GuiDialogs {
   }
 
   /**
-   * Shows the form for editing a calendar's name or timezone.
+   * Shows the calendar settings form with no calendar pre-selected.
    */
   void openEditCalendar() {
-    JPanel form = FormComponents.form();
+    openEditCalendar(null);
+  }
+
+  /**
+   * Shows the calendar settings form for renaming or changing the timezone. The value editor
+   * adapts to the chosen property: a text field for the name, a timezone selector for the timezone.
+   *
+   * @param preselect the calendar to pre-select (and lock), or {@code null} to choose one
+   */
+  void openEditCalendar(String preselect) {
+    final JPanel form = FormComponents.form();
     JComboBox<String> calendarBox = new JComboBox<>(calendars.get().toArray(new String[0]));
+    if (preselect != null) {
+      calendarBox.setSelectedItem(preselect);
+      calendarBox.setEnabled(false);
+    }
     JComboBox<String> propertyBox = new JComboBox<>(new String[] {"name", "timezone"});
-    JTextField newValue = new JTextField(16);
+    JTextField nameValue = new JTextField(16);
+    JComboBox<String> timezoneValue = timezoneCombo(null);
+
+    JPanel valueCards = new JPanel(new CardLayout());
+    valueCards.add(nameValue, "name");
+    valueCards.add(timezoneValue, "timezone");
+    propertyBox.addActionListener(e -> ((CardLayout) valueCards.getLayout())
+        .show(valueCards, (String) propertyBox.getSelectedItem()));
+
     FormComponents.addRow(form, "Calendar:", calendarBox);
     FormComponents.addRow(form, "Property:", propertyBox);
-    FormComponents.addRow(form, "New value:", newValue);
+    FormComponents.addRow(form, "New value:", valueCards);
 
-    if (confirm(form, "Edit Calendar",
-        () -> newValue.getText().isBlank() ? "A new value is required." : null)
-        && calendarBox.getSelectedItem() != null) {
-      features.editCalendar(calendarBox.getSelectedItem().toString(),
-          propertyBox.getSelectedItem().toString(), newValue.getText().trim());
+    boolean ok = confirm(form, "Calendar Settings", () -> {
+      if ("name".equals(propertyBox.getSelectedItem()) && nameValue.getText().isBlank()) {
+        return "A new name is required.";
+      }
+      return null;
+    });
+    if (ok && calendarBox.getSelectedItem() != null) {
+      String property = (String) propertyBox.getSelectedItem();
+      String value = "name".equals(property)
+          ? nameValue.getText().trim() : selectedText(timezoneValue);
+      features.editCalendar(calendarBox.getSelectedItem().toString(), property, value);
     }
   }
 
   /**
-   * Prompts for a file name and requests an export with the given extension.
+   * Opens a save dialog and requests an export in the given format.
    *
    * @param extension the file extension ("csv" or "ics")
    */
   void openExport(String extension) {
-    String name = JOptionPane.showInputDialog(parent,
-        "Enter file name (the ." + extension + " extension is added automatically):");
-    if (name == null || name.isBlank()) {
+    JFileChooser chooser = new JFileChooser();
+    chooser.setDialogTitle("Export to " + extension.toUpperCase());
+    chooser.setSelectedFile(new File("calendar." + extension));
+    chooser.setFileFilter(new FileNameExtensionFilter(
+        extension.toUpperCase() + " files", extension));
+    if (chooser.showSaveDialog(parent) != JFileChooser.APPROVE_OPTION) {
       return;
     }
-    features.exportCalendar(name.trim() + "." + extension);
+    String path = chooser.getSelectedFile().getAbsolutePath();
+    if (!path.toLowerCase().endsWith("." + extension)) {
+      path = path + "." + extension;
+    }
+    features.exportCalendar(path);
   }
 
   /**
@@ -431,6 +473,20 @@ class GuiDialogs {
         .mapToObj(c -> String.valueOf((char) c))
         .filter(k -> checkBoxes.get(k).isSelected())
         .collect(Collectors.joining());
+  }
+
+  private JComboBox<String> timezoneCombo(String initial) {
+    List<String> zones = new ArrayList<>(ZoneId.getAvailableZoneIds());
+    Collections.sort(zones);
+    JComboBox<String> combo = new JComboBox<>(zones.toArray(new String[0]));
+    combo.setEditable(true);
+    combo.setSelectedItem(initial != null ? initial : ZoneId.systemDefault().getId());
+    return combo;
+  }
+
+  private String selectedText(JComboBox<String> combo) {
+    Object value = combo.getSelectedItem();
+    return value == null ? "" : value.toString().trim();
   }
 
   private JComboBox<String> propertyDropdown() {

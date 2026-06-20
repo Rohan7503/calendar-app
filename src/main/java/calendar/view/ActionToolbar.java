@@ -19,8 +19,6 @@ class ActionToolbar extends JPanel {
     super(new FlowLayout(FlowLayout.LEFT, Theme.UNIT, Theme.UNIT));
     setBackground(Theme.SURFACE);
 
-    JButton createCalendar = UiFactory.secondaryButton("Create Calendar");
-    createCalendar.addActionListener(e -> dialogs.openCreateCalendar());
     JButton createEvent = UiFactory.primaryButton("Create Event");
     createEvent.addActionListener(e -> dialogs.openCreateEvent());
     JButton createSeriesCount = UiFactory.secondaryButton("Create Series (Count)");
@@ -32,7 +30,6 @@ class ActionToolbar extends JPanel {
     JButton deleteEvents = UiFactory.secondaryButton("Delete Events");
     deleteEvents.addActionListener(e -> dialogs.openDeleteEvents());
 
-    add(createCalendar);
     add(createEvent);
     add(createSeriesCount);
     add(createSeriesUntil);

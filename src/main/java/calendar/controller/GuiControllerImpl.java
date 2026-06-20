@@ -5,11 +5,13 @@ import calendar.model.MultiCalModelInterface;
 import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiInterface;
 import calendar.view.CalViewInterface;
+import calendar.view.CalendarSummary;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,9 +46,8 @@ public class GuiControllerImpl implements Features {
       ZoneId zoneId = ZoneId.of(timezone);
       model.createCalendar(name, zoneId);
       model.useCalendar(name);
-      List<String> calNames = model.listCalendars();
       view.showMessage("Successfully created calendar - " + name);
-      view.showCalendars(calNames, name);
+      refreshCalendars();
       view.refreshEvents();
     } catch (DateTimeException e) {
       view.showError("Invalid time zone");
@@ -60,8 +61,7 @@ public class GuiControllerImpl implements Features {
     try {
       model.useCalendar(name);
       activeCalendar = model.getActiveCalendar();
-      List<String> calNames = model.listCalendars();
-      view.showCalendars(calNames, name);
+      refreshCalendars();
       view.refreshEvents();
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
@@ -240,13 +240,25 @@ public class GuiControllerImpl implements Features {
   public void editCalendar(String name, String property, String newValue) {
     try {
       model.editCalendar(name, property, newValue);
-      String highlight = property.equalsIgnoreCase("name") ? newValue : name;
       view.showMessage("Calendar updated successfully");
-      view.showCalendars(model.listCalendars(), highlight);
+      refreshCalendars();
       view.refreshEvents();
     } catch (IllegalArgumentException e) {
       view.showError(e.getMessage());
     }
+  }
+
+  /**
+   * Rebuilds the calendar list shown in the sidebar from the model, including each calendar's
+   * timezone, and highlights whichever calendar the model reports as active. Robust across
+   * renames and timezone edits because the active name is read from the model.
+   */
+  private void refreshCalendars() {
+    List<CalendarSummary> summaries = new ArrayList<>();
+    for (String calName : model.listCalendars()) {
+      summaries.add(new CalendarSummary(calName, model.getTimezone(calName).getId()));
+    }
+    view.showCalendars(summaries, model.getActiveCalendarName());
   }
 
   @Override

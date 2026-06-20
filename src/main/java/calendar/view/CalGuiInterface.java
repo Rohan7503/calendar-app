@@ -26,10 +26,10 @@ public interface CalGuiInterface {
   /**
    * Display the list of calendars and highlight the currently active one.
    *
-   * @param calendarNames  list of all calendar names
+   * @param calendars      summaries (name and timezone) of all calendars
    * @param activeCalendar name of the currently active calendar
    */
-  void showCalendars(List<String> calendarNames, String activeCalendar);
+  void showCalendars(List<CalendarSummary> calendars, String activeCalendar);
 
   /**
    * Display all events scheduled on a selected day.

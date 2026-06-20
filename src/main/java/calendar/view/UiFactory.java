@@ -3,7 +3,11 @@ package calendar.view;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -118,5 +122,35 @@ final class UiFactory {
   static void capHeight(Component component) {
     Dimension pref = component.getPreferredSize();
     component.setMaximumSize(new Dimension(Integer.MAX_VALUE, pref.height));
+  }
+
+  /**
+   * Creates a small filled-circle icon in the given color, used as a calendar color marker.
+   *
+   * @param color the dot color
+   * @return an icon that paints a filled circle
+   */
+  static Icon colorDot(Color color) {
+    final int size = Theme.UNIT + 4;
+    return new Icon() {
+      @Override
+      public void paintIcon(Component c, Graphics g, int x, int y) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(color);
+        g2.fillOval(x, y, size, size);
+        g2.dispose();
+      }
+
+      @Override
+      public int getIconWidth() {
+        return size;
+      }
+
+      @Override
+      public int getIconHeight() {
+        return size;
+      }
+    };
   }
 }

@@ -56,6 +56,22 @@ public interface MultiCalModelInterface {
   List<String> listCalendars();
 
   /**
+   * Returns the name of the currently active calendar.
+   *
+   * @return the active calendar's name, or {@code null} if none is active
+   */
+  String getActiveCalendarName();
+
+  /**
+   * Returns the timezone of the named calendar.
+   *
+   * @param calName the calendar name
+   * @return the calendar's timezone
+   * @throws IllegalArgumentException if no calendar with that name exists
+   */
+  ZoneId getTimezone(String calName) throws IllegalArgumentException;
+
+  /**
    * Copies a single event from the active calendar to a target calendar,
    * starting at the specified date and time.
    *

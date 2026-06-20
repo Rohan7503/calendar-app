@@ -6,7 +6,10 @@ import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiImpl;
 import calendar.view.CalGuiInterface;
 import calendar.view.CalViewInterface;
+import calendar.view.CalendarSummary;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -129,7 +132,11 @@ public class CalControllerImpl implements CalControllerInterface {
     calModel.createCalendar("Default", systemZone);
     calModel.useCalendar("Default");
 
-    guiView.showCalendars(calModel.listCalendars(), "Default");
+    List<CalendarSummary> summaries = new ArrayList<>();
+    for (String calName : calModel.listCalendars()) {
+      summaries.add(new CalendarSummary(calName, calModel.getTimezone(calName).getId()));
+    }
+    guiView.showCalendars(summaries, calModel.getActiveCalendarName());
     guiView.showGui();
   }
 

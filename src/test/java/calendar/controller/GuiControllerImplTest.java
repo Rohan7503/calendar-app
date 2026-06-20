@@ -3,12 +3,11 @@ package calendar.controller;
 import static org.junit.Assert.assertTrue;
 
 import calendar.model.Event;
-import calendar.model.MultiCalModelImpl;
 import calendar.model.MultiCalModelInterface;
 import calendar.model.SingleCalModelInterface;
 import calendar.view.CalGuiInterface;
 import calendar.view.CalViewInterface;
-import java.io.StringReader;
+import calendar.view.CalendarSummary;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -104,6 +103,16 @@ public class GuiControllerImplTest {
     @Override
     public List<String> listCalendars() {
       return List.of(calendars.keySet().toArray(new String[0]));
+    }
+
+    @Override
+    public String getActiveCalendarName() {
+      return activeCalendarName;
+    }
+
+    @Override
+    public ZoneId getTimezone(String calName) {
+      return ZoneId.of("America/New_York");
     }
 
     @Override
@@ -384,10 +393,10 @@ public class GuiControllerImplTest {
     }
 
     @Override
-    public void showCalendars(List<String> calendarNames, String activeCalendar) {
+    public void showCalendars(List<CalendarSummary> calendars, String activeCalendar) {
       log.append("Calendars : ");
-      for (String cal : calendarNames) {
-        log.append(cal)
+      for (CalendarSummary cal : calendars) {
+        log.append(cal.name())
             .append(System.lineSeparator());
       }
       log.append("active cal : ")

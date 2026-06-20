@@ -40,6 +40,26 @@ final class Theme {
 
   // Sizes
   static final Dimension DAY_CELL = new Dimension(96, 78);
-  static final Dimension SIDE_PANEL = new Dimension(240, 520);
-  static final Dimension DETAIL_PANEL = new Dimension(320, 520);
+  static final Dimension SIDE_PANEL = new Dimension(250, 540);
+  static final Dimension DETAIL_PANEL = new Dimension(320, 540);
+
+  // Per-calendar accent colors, assigned deterministically by name.
+  static final Color[] CALENDAR_COLORS = {
+      new Color(0x2F, 0x6F, 0xED),
+      new Color(0x2E, 0xA0, 0x43),
+      new Color(0xD9, 0x53, 0x40),
+      new Color(0x8E, 0x44, 0xAD),
+      new Color(0xE6, 0x8A, 0x00),
+      new Color(0x16, 0xA0, 0x85),
+  };
+
+  /**
+   * Returns a stable accent color for a calendar name.
+   *
+   * @param name the calendar name
+   * @return a color drawn deterministically from the palette
+   */
+  static Color calendarColor(String name) {
+    return CALENDAR_COLORS[Math.floorMod(name.hashCode(), CALENDAR_COLORS.length)];
+  }
 }
