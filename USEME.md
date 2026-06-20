@@ -86,7 +86,9 @@ The GUI is divided into 4 panes, as shown below:
 
 ### Day Events Pane:
 - The right pane displays all events scheduled **for the selected day** (highlighted in yellow as shown below).
-- Each of the events also have an edit button, which allows you to edit that particular event alone
+- All-day events are shown as "All day" instead of a time range.
+- Each event has an **Edit** button (to edit that event alone) and a **Delete** button (which asks
+  for confirmation before removing that single event).
 ![Image of the day events pane](res/gui_images/rpane.png)
 
 ### Month Grid Pane:
@@ -95,13 +97,27 @@ month views.
 - Selected day is highlighted in yellow. Image is shown above
 
 ### Top Action Buttons Pane
-- This pane contains the main action buttons for the calendar application.
+- This pane contains the main action buttons for the calendar application: Create Calendar,
+Create Event, Create Series (Count), Create Series (Until Date), Edit Multiple Events, and
+Delete Events.
 - Clicking on any of the action buttons opens a dialog box (as shown below),
 where the date fields are autopopulated if any day was selected on the month grid
 before clicking on the action buttons.
 - Event times are defaulted to the "all-day" event hours (8am - 5pm), but can be changed
-in the dialog box
+in the dialog box. The Create Event dialog also has an **All-day event** checkbox; when ticked,
+the time fields are ignored and a first-class all-day event is created.
+- **Edit Multiple Events** and **Delete Events** let you apply a change to an entire series, or to
+an event and all later events in its series, using the scope option in the dialog.
 ![Image of the create event series until date dialog box](res/gui_images/tpane.png)
+
+### Tools Menu
+The **Tools** menu (in the menu bar) provides access to features that are also available in the
+text modes:
+- **Edit Calendar** — rename a calendar or change its timezone.
+- **Export to CSV / Export to ICS** — export the active calendar to a file.
+- **Copy Events** — copy a range of events from the active calendar into another calendar.
+- **Show Status** — check whether you are busy or available at a given date and time.
+- **View Date Range** — list all events of the active calendar within a date/time range.
 
 ### Example flow:
 

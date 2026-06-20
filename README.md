@@ -56,6 +56,31 @@ The system design is guided by the SOLID principles, with an emphasis on:
 
 The application is packaged as an executable JAR, allowing users to run the system from the command line with configurable arguments. File paths are handled in a platform-independent manner to ensure portability across environments.
 
+## 2.7 Design Notes
+
+The following design decisions reflect the current behavior of the system:
+
+- **All-day events are a first-class concept.** An event carries an explicit `allDay` flag rather
+  than being inferred from its start/end times. Events created with the `on <date>` form are
+  all-day; events created with `from ... to ...` are timed. As a result, an ordinary timed meeting
+  that happens to run 08:00–17:00 is no longer treated as all-day. CSV and iCalendar export rely on
+  this flag to decide whether to write all-day or timed entries.
+- **Event identity is subject + start + end.** Two events are considered the same (for duplicate
+  detection, edits, copies, and deletes) when they share subject, start, and end. Other metadata
+  (description, location, status, series membership, all-day flag) is intentionally excluded from
+  identity.
+- **Delete semantics mirror edit semantics.** `delete event` removes a single instance,
+  `delete events` removes an event and all later events in its series, and `delete series` removes
+  the whole series. A non-series event behaves the same under all three.
+- **Timezone changes are transactional.** Changing a calendar's timezone builds the fully converted
+  set of events and swaps it in atomically; if the conversion cannot be applied cleanly, the
+  calendar is left unchanged rather than partially converted.
+- **GUI parity.** The GUI exposes the previously text-only features (export to CSV/ICS, copying a
+  range of events between calendars, busy/available status, and viewing a date range) through a
+  **Tools** menu, in addition to creating all-day events and deleting events.
+- **The build fails on test failures.** The test task no longer ignores failures, so a failing test
+  fails the build.
+
 # 3 Feature Set
 
 The table below lists the available features at a high-level:
@@ -70,22 +95,25 @@ The table below lists the available features at a high-level:
 | **4. Highlighting selected calendar**                                             | Yes              | No                    | No                       |
 | **5. Month grid (clickable days)**                                                | Yes              | No                    | No                       |
 | **6. Showing events for selected day**                                            | Yes              | Yes                   | Yes                      |
-| **7. Showing events for range of days**                                           | No               | Yes                   | Yes                      |
+| **7. Showing events for range of days**                                           | Yes              | Yes                   | Yes                      |
 | **8. Creating an event**                                                          | Yes              | Yes                   | Yes                      |
 | **9. Creating an event series (count)**                                           | Yes              | Yes                   | Yes                      |
 | **10. Creating an event series (until date)**                                     | Yes              | Yes                   | Yes                      |
 | **11. Editing a single event**                                                    | Yes              | Yes                   | Yes                      |
 | **12. Editing events of a series after this event**                               | Yes              | Yes                   | Yes                      |
 | **13. Editing an entire event series**                                            | Yes              | Yes                   | Yes                      |
+| **13a. Deleting a single event**                                                  | Yes              | Yes                   | Yes                      |
+| **13b. Deleting events of a series from a point onwards**                         | Yes              | Yes                   | Yes                      |
+| **13c. Deleting an entire event series**                                          | Yes              | Yes                   | Yes                      |
 | **14. Informational messages (creation / edition / etc.)**                        | Yes              | Yes                   | Yes                      |
 | **15. Error messages**                                                            | Yes              | Yes                   | Yes                      |
 | **16. Default calendar creation on application start**                            | Yes              | No                    | No                       |
-| **17. Exporting events to a .csv file**                                           | No               | Yes                   | Yes                      |
-| **18. Exporting events to a .ics (iCal) file**                                    | No               | Yes                   | Yes                      |
+| **17. Exporting events to a .csv file**                                           | Yes              | Yes                   | Yes                      |
+| **18. Exporting events to a .ics (iCal) file**                                    | Yes              | Yes                   | Yes                      |
 | **19. Copying a single event from one calendar to another**                       | No               | Yes                   | Yes                      |
 | **20. Copying events of a single day from one calendar to another**               | No               | Yes                   | Yes                      |
-| **21. Copying events within a range of days from one calendar to another**        | No               | Yes                   | Yes                      |
-| **22. User status on a given day (busy or available)**                            | No               | Yes                   | Yes                      |
+| **21. Copying events within a range of days from one calendar to another**        | Yes              | Yes                   | Yes                      |
+| **22. User status on a given day (busy or available)**                            | Yes              | Yes                   | Yes                      |
 | **23. Converting event times to the timezone of the calendar they are a part of** | Yes              | Yes                   | Yes                      |
 | **24. Quiting the application**                                                   | Yes              | Yes                   | Yes                      |
 
@@ -189,6 +217,23 @@ Identify the event that has the given subject and starts at the given date and t
 For all these queries the `<property>` field may be one of the following: *subject*, *start*, *end*, *description*, *location*, *status*. The format of the new property values are `string`, `dateStringTtimeString`, `dateStringTtimeString`, `string`, `string` and `string` respectively.
 
 If an edition will result in any violations of the rule that two events cannot have the same subject, start and end date, then the edition should not occur. A useful error message may be printed in this case.
+
+### Deleting Events
+
+- `delete event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString>`
+
+Deletes the single event uniquely identified by the given subject, start, and end. This affects
+only that one instance, whether or not it is part of a series.
+
+- `delete events <eventSubject> from <dateStringTtimeString>`
+
+Identifies the event with the given subject and start. If it is part of a series, this deletes that
+event and all later events in the series. If it is not part of a series, only that event is deleted.
+
+- `delete series <eventSubject> from <dateStringTtimeString>`
+
+Identifies the event with the given subject and start. If it is part of a series, the entire series
+is deleted. If it is not part of a series, this behaves like `delete event` for that instance.
 
 ### Queries
 

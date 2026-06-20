@@ -460,6 +460,81 @@ public class GuiControllerImplTest {
   }
 
   @Test
+  public void testCreateAllDayEventCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.createAllDayEvent("Holiday", "2025-10-27");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Event Created successfully!"));
+    assertTrue(modelLogs.contains("subject=Holiday"));
+  }
+
+  @Test
+  public void testDeleteEventCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.deleteEvent("Gym", "2025-10-27T08:00", "2025-10-27T09:00");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Event Deleted successfully!"));
+    assertTrue(modelLogs.contains("delete subject=Gym"));
+  }
+
+  @Test
+  public void testDeleteEventsCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.deleteEvents("Class", "2025-11-03T09:00", true);
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Events Deleted successfully!"));
+    assertTrue(modelLogs.contains("delete subject=Class"));
+    assertTrue(modelLogs.contains("deleteWholeSeries=true"));
+  }
+
+  @Test
+  public void testEditCalendarCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.editCalendar("work", "name", "office");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Calendar updated successfully"));
+    assertTrue(modelLogs.contains("newValue: office"));
+  }
+
+  @Test
+  public void testShowStatusCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.showStatus("2025-10-27T09:00");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Status: "));
+  }
+
+  @Test
+  public void testCopyEventsCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.copyEvents("2025-10-27", "2025-10-28", "work", "2025-11-01");
+    modelLogs = ((MockModel) model).getLogs();
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("Events copied successfully"));
+    assertTrue(modelLogs.contains("targetStartDate: 2025-11-01"));
+  }
+
+  @Test
+  public void testRequestEventsInRangeCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.requestEventsInRange("2025-10-27T00:00", "2025-10-28T00:00");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("No events found in this range."));
+  }
+
+  @Test
+  public void testExportCalendarNoEventsCallback() {
+    guiController.createCalendar("work", "America/Los_Angeles");
+    guiController.exportCalendar("nonexistent.csv");
+    viewLogs = ((MockView) gui).getLogs();
+    assertTrue(viewLogs.contains("No events found."));
+  }
+
+  @Test
   public void testCreateCalendarInvalidTimeZone() {
     String name = "work";
     String timezone = "Invalid/America";

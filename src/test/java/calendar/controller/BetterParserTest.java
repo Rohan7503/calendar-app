@@ -60,6 +60,41 @@ public class BetterParserTest {
   }
 
   @Test
+  public void testDeleteEventCommand() {
+    result = betterParser.parse(
+        "delete event Gym from 2025-10-27T08:00 to 2025-10-27T09:00");
+    assertEquals(CommandType.DELETE_EVENT, result.getCommandType());
+    assertEquals("Gym", result.getArguments().get("subject"));
+    assertEquals("2025-10-27T08:00", result.getArguments().get("start"));
+    assertEquals("2025-10-27T09:00", result.getArguments().get("end"));
+  }
+
+  @Test
+  public void testDeleteSeriesCommand() {
+    result = betterParser.parse("delete series Class from 2025-11-03T09:00");
+    assertEquals(CommandType.DELETE_EVENTS, result.getCommandType());
+    assertEquals("Class", result.getArguments().get("subject"));
+    assertEquals("true", result.getArguments().get("deleteWholeSeries"));
+  }
+
+  @Test
+  public void testDeleteEventsFromHereCommand() {
+    result = betterParser.parse("delete events Class from 2025-11-03T09:00");
+    assertEquals(CommandType.DELETE_EVENTS, result.getCommandType());
+    assertEquals("false", result.getArguments().get("deleteWholeSeries"));
+  }
+
+  @Test
+  public void testInvalidDeleteEventSyntax() {
+    try {
+      betterParser.parse("delete event Gym 2025-10-27T08:00");
+      fail("invalid delete syntax exception expected");
+    } catch (IllegalArgumentException e) {
+      //pass
+    }
+  }
+
+  @Test
   public void testUseCalendarCommand() {
     result = betterParser.parse("use calendar --name WorkCalendar");
     assertEquals("WorkCalendar", result.getArguments().get("calName"));
